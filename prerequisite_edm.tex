@@ -1,0 +1,878 @@
+% THIS IS SIGPROC-SP.TEX - VERSION 3.1
+% WORKS WITH V3.2SP OF ACM_PROC_ARTICLE-SP.CLS
+% APRIL 2009
+%
+% It is an example file showing how to use the 'acm_proc_article-sp.cls' V3.2SP
+% LaTeX2e document class file for Conference Proceedings submissions.
+% ----------------------------------------------------------------------------------------------------------------
+% This .tex file (and associated .cls V3.2SP) *DOES NOT* produce:
+%       1) The Permission Statement
+%       2) The Conference (location) Info information
+%       3) The Copyright Line with ACM data
+%       4) Page numbering
+% ---------------------------------------------------------------------------------------------------------------
+% It is an example which *does* use the .bib file (from which the .bbl file
+% is produced).
+% REMEMBER HOWEVER: After having produced the .bbl file,
+% and prior to final submission,
+% you need to 'insert'  your .bbl file into your source .tex file so as to provide
+% ONE 'self-contained' source file.
+%
+% Questions regarding SIGS should be sent to
+% Adrienne Griscti ---> griscti@acm.org
+%
+% Questions/suggestions regarding the guidelines, .tex and .cls files, etc. to
+% Gerald Murray ---> murray@hq.acm.org
+%
+% For tracking purposes - this is V3.1SP - APRIL 2009
+
+\documentclass{edm_template}
+
+% Load basic packages
+\usepackage{balance}  % to better equalize the last page
+\usepackage{graphics} % for EPS, load graphicx instead 
+\usepackage[T1]{fontenc}
+\usepackage{txfonts}
+\usepackage{mathptmx}
+\usepackage[pdftex]{hyperref}
+\usepackage{color}
+\usepackage{booktabs}
+\usepackage{textcomp}
+\usepackage{booktabs}
+% Some optional stuff you might like/need.
+\usepackage{microtype} % Improved Tracking and Kerning
+% \usepackage[all]{hypcap}  % Fixes bug in hyperref caption linking
+\usepackage{ccicons}  % Cite your images correctly!
+% \usepackage[utf8]{inputenc} % for a UTF8 editor only
+
+%\usepackage{algorithm} 
+\usepackage[ruled]{algorithm}
+\usepackage{algpseudocode}
+\usepackage{algorithmicx} 
+
+% If you want to use todo notes, marginpars etc. during creation of your draft document, you
+% have to enable the "chi_draft" option for the document class. To do this, change the very first
+% line to: "\documentclass[chi_draft]{sigchi}". You can then place todo notes by using the "\todo{...}"
+% command. Make sure to disable the draft option again before submitting your final document.
+\usepackage{todonotes}
+
+\usepackage{amssymb}
+\usepackage{amsmath,scalerel}
+
+\usepackage{graphicx}
+\usepackage{epstopdf}
+%\usepackage{natbib}
+\usepackage{array}
+\usepackage{color} 
+\newcommand{\hl}[1]{\colorbox{yellow}{#1}}
+\usepackage{subcaption}
+\usepackage{enumitem}
+\usepackage{url}
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\Bigcdot}{\scalerel*{\cdot}{\bigodot}}
+
+\usepackage{tikz}
+\usetikzlibrary{decorations.pathreplacing,calc}
+\newcommand{\tikzmark}[1]{\tikz[overlay,remember picture] \node (#1) {};}
+\newcommand*{\AddNote}[4]{%
+	\begin{tikzpicture}[overlay, remember picture]
+	\draw [decoration={brace,amplitude=0.2em},decorate, thick, darkgray]
+	($(#3)!(#1.north)!($(#3)-(0,1)$)$) --  
+	($(#3)!(#2.south)!($(#3)-(0,1)$)$)
+	node [align=center, text width=2.5cm, pos=0.5, anchor=west] {#4};
+	\end{tikzpicture}
+}%
+\usepackage{tabularx}
+\usepackage{multirow}
+
+
+\algdef{SE}[DOWHILE]{Do}{doWhile}{\algorithmicdo}[1]{\algorithmicwhile\ #1}%
+
+\begin{document}
+
+\title{Towards Automatic Discovery of Prerequisite Structure of Skills from Student Performance Data}
+%\subtitle{[Extended Abstract]
+%\titlenote{A full version of this paper is available as
+%\textit{Author's Guide to Preparing ACM SIG Proceedings Using
+%\LaTeX$2_\epsilon$\ and BibTeX} at
+%\texttt{www.acm.org/eaddress.htm}}}
+%
+% You need the command \numberofauthors to handle the 'placement
+% and alignment' of the authors beneath the title.
+%
+% For aesthetic reasons, we recommend 'three authors at a time'
+% i.e. three 'name/affiliation blocks' be placed beneath the title.
+%
+% NOTE: You are NOT restricted in how many 'rows' of
+% "name/affiliations" may appear. We just ask that you restrict
+% the number of 'columns' to three.
+%
+% Because of the available 'opening page real-estate'
+% we ask you to refrain from putting more than six authors
+% (two rows with three columns) beneath the article title.
+% More than six makes the first-page appear very cluttered indeed.
+%
+% Use the \alignauthor commands to handle the names
+% and affiliations for an 'aesthetic maximum' of six authors.
+% Add names, affiliations, addresses for
+% the seventh etc. author(s) as the argument for the
+% \additionalauthors command.
+% These 'additional authors' will be output/set for you
+% without further effort on your part as the last section in
+% the body of your article BEFORE References or any Appendices.
+
+\numberofauthors{3} %  in this sample file, there are a *total*
+% of EIGHT authors. SIX appear on the 'first-page' (for formatting
+% reasons) and the remaining two appear in the \additionalauthors section.
+%
+\author{%
+	\alignauthor{Leave Authors Anonymous\\
+		\affaddr{for Submission}\\
+		\affaddr{City, Country}\\
+		\email{e-mail address}}\\
+	\alignauthor{Leave Authors Anonymous\\
+		\affaddr{for Submission}\\
+		\affaddr{City, Country}\\
+		\email{e-mail address}}\\
+	\alignauthor{Leave Authors Anonymous\\
+		\affaddr{for Submission}\\
+		\affaddr{City, Country}\\
+		\email{e-mail address}}\\	
+}
+
+\maketitle
+\begin{abstract}
+Understanding the prerequisite structure of skills is crucial for designing curriculum, assessing mastery and for student modeling.
+%Traditionally, the prerequisite structures of skills are manually specified by human experts and this process is often time-consuming.
+Automatic discovery of the prerequisite structures from educational data is intriguing yet challenging since student's mastery of skills are latent variables.
+In this work, we proposed a novel data-driven approach to discover the prerequisite structure of skill given student performance on test items. 
+By modeling the prerequisite relations as a Bayesian network, we then estimate the causal structure and the probabilistic dependence among the skills 
+via a two-stage structural learning algorithm. 
+In the first stage, the skeleton of the Bayesian network is constructed using Structural Expectation Maximization (Structural EM) algorithm;
+In the second stage,  the edges are oriented by enforcing the constraints on estimated conditional probability distributions.
+We validate the proposed approach using simulations and by post-hoc analysis of student data.
+We show the discovered prerequisite structure can improve the student model in predicting student performance. 
+\end{abstract}
+
+%% A category with the (minimum) three required fields
+%\category{H.4}{Information Systems Applications}{Miscellaneous}
+%%A category including the fourth, optional field follows...
+%\category{D.2.8}{Software Engineering}{Metrics}[complexity measures, performance measures]
+%
+%\terms{Theory}
+
+\keywords{ACM proceedings, \LaTeX, text tagging} % NOT required for Proceedings
+
+\section{Introduction}
+%Students usually acquire knowledge components in a meaningful sequence which starts from relatively simple concepts and gradually approaches more complex ones. 
+Students learn much better when the skills are not randomly introduced 
+but organized in a meaningful order which starts from relatively simple concepts and gradually introduces more complex ones. 
+Further, among these skills, some are preliminary of others such that they must be mastered before the subsequent concepts can be learned.
+For instance, students have to know how to do addition before they learn to do multiplication.
+In this work, we use prerequisite structure to refer to the relationships among skills that place strict constraints
+on the order in which these skills can be acquired. Determining the prerequisite relations among skills is crucial for designing curriculum and for assessing mastery.
+
+Most prerequisite structures of skills are specified by domain or cognition experts. However, it is time-consuming and different experts may disagree
+on the prerequisite structure of the same set of skills. Further, the prerequisite structures specified by the experts are seldom tested and might be unreliable in
+the sense that experts may have ``blind spots".
+
+%In education, remedial interventions attempt to eliminate the specific effect of lacking a competency.
+%Traditional and mastery-based educational strategies~\cite{bloom1968learning} often rely on remedial interventions when a learner is having a difficulty in the curriculum.
+%Teachers often use their experience, knowledge and common sense to justify if a student may need remedial assistance.
+%With the growing popularity of Intelligent Tutoring Systems, computers are starting  to have capabilities to detect when a student is in need of remediation.
+%The process of designing when a computer should offer remediation to a student typically starts by subject matter experts writing rules that are then engineered into the system.
+%These rules are difficult and time consuming to build.
+
+
+%In this paper we introduce the \textit{Remedial Intervention Detector} (REMIND) algorithm.
+%REMIND is a novel pipeline that uses data--and optionally domain knowledge-- to infer when a student may lack the  necessary  knowledge to solve the current lesson.
+%We believe the capability of combining data with subject matter expertise is a promising approach.
+
+
+%\section{Remedial Intervention Detector (REMIND) }
+%In many instructional settings, students are graded by their performance on instruments such as exams or homework assignments. 
+%Usually, these instruments are made of items--questions, problems, parts of questions-- which are graded individually.
+%Modern applications of statistics in education often rely on a mapping of items to skills (often called a $Q$-matrix) to analyze data collected from students answering items.
+%The item to skill mapping is often designed by subject matter experts, but automatic approaches exist~\cite{jp_aistats_2015}.
+%
+%REMIND is a pipeline that uses data from students answering items to discover when a student  is lacking background knowledge and could benefit from remediation.
+%For this, REMIND first discovers prerequisite structures  among the skills in the data.
+%In the context of this paper, we define the prerequisite structure as the strict constraints on the order in which these skills can be acquired.
+%REMIND then uses student modeling techniques to infer if a student has mastered the skill and its prerequisites.
+%The rationale is  that a student should receive a remedial intervention if she is likely to lack a prerequisite.%, an intervention for tutoring remedial content should be offered to the student.
+%In \S~\ref{sec:learning_remind} we describe how to learn a REMIND  model from data;
+%and in \S~\ref{sec:using_remind} we explain how to use it to offer remedial interventions.
+
+
+\subsection{Learning an Intervention Model}
+\label{sec:learning_remind}
+
+REMIND learns the prerequisite structure of the skills using data with a statistical model called Bayesian network \cite{pearl2000causality,spirtes2001causation}.
+Bayesian networks are also called probabilistic graphical models  because they can  be represented visually and algebraically as a collection of nodes and edges.
+A tutorial description of Bayesian networks in education can be found elsewhere \cite{almond2015bayesian}, 
+but for now we say that they are often described with two components: 
+the  nodes represent the random variables, which we describe using \textit{conditional probability tables} (CPTs),
+and the set of edges that form a \textit{directed acyclic graph} (DAG) represent the conditional dependencies between the variables.
+Bayesian networks are a flexible tool that can be used to model an entire curriculum.
+
+Figure~\ref{fig:smexample} illustrates an example of a prerequisite structure modeled with a Bayesian network.
+Here, we relate four test items with the skills of addition and multiplication.
+Addition is a prerequisite of multiplication thus there is an arrow from addition to multiplication.
+Modeling prerequisites as edges in a Bayesian network allows us to frame the discovery of the prerequisite relationships as the well-studied machine learning problem of learning a DAG (with the presence of latent variables).
+
+
+\begin{figure}
+	\begin{center}
+		\includegraphics[width=1.0\linewidth]{figures/studentmodel.png}
+	\end{center}
+	\caption{A hypothetical Bayesian network learned with Algorithm~\ref{alg:remind}. 
+		Solid edges are given by the item to skill mapping, dashed edges between skill variables are to be discovered from data.
+		The conditional probability tables are to be learned.}
+	\label{fig:smexample} 
+\end{figure} 
+
+
+Algorithm~\ref{alg:remind} describes the simple but effective REMIND pipeline.
+Suppose we collect data from  $n$ students, answering $p$ items.
+Then, the input of REMIND is a matrix $\mathbf{D}$ with $n \times p$ dimensions, an item to skill mapping, and (optionally) some constraints on what content can trigger a remediation.
+Each entry in $\mathbf{D}$ encodes the performance of a student (see Table~\ref{tbl:d-matrix} for an example).
+%REMIND also requires .
+REMIND first constructs the prerequisite relationships among the set of skills using constraints.
+Then, it  learns the parameters of a student model  that infers what skills a student has mastered.
+
+
+\begin{table}[htb]%\small
+	\centering
+	\caption{Example data matrix to use with REMIND.  The performance of a student is encoded with 1 if the student answered correctly the item, and 0 otherwise. \label{tbl:d-matrix}}
+	\begin{tabular}{@{}lllll@{}}
+		\toprule
+		User  & Item 1 & Item 2 & Item 3 & Item $p$ \\ \midrule
+		Alice & 0      & 1      &        & 0        \\
+		Bob   & 1      & 1      & ...    & 1        \\
+		Carol & 0      & 0      &        & 1        \\
+		\multicolumn{5}{c}{...}                     \\ \bottomrule
+	\end{tabular}
+\end{table}
+
+
+REMIND relies on a popular machine learning algorithm called Structural Expectation Maximization (EM), which has not been used in educational applications. 
+A secondary contribution of our work is introducing Structural EM for learning Bayesian network structures from educational data.
+%In particular, we modify Structural EM to be used for discovering the prerequisite relationships among skills from students' responses on test items.
+One of the advantages of Structural EM algorithm over prior work is that it allows to combine expert beliefs into the inference process.
+%\hl{Say some advantages of Structural E-M, such that it allows expert beliefs to be engineered,  this helps so a remediation won't be content from the future, but only for the past, for example}
+We now describe the  steps of REMIND in detail.
+
+\begin{algorithm}
+	\begin{algorithmic}[1]
+		\Require A matrix $\mathbf{D}$ of student performance on a set of test items, skill-to-item mapping $Q$ (containing a set of skills $\mathbf{S}$)
+		and a set of constraints $\mathbf{C}$ reflecting experts' beliefs on the prerequisite structure
+		\State  $G_0\leftarrow$ Initialize$(\mathbf{S}, Q, \mathbf{C})$ ~~~~~~~~~~~~\tikzmark{inittop}\tikzmark{right}
+		\State $i\leftarrow 0$ \tikzmark{initbot}
+		\Do \tikzmark{semtop}
+		\State \emph{E}-step: 
+		\State ~~~ $\theta_i^*\leftarrow$ ParametricEM($G_i,\mathbf{D}$) 
+		\State ~~~ $\mathbf{D}_i^*\leftarrow$ Inference($G_i,\theta_i^*,\mathbf{D}$) 
+		\State \emph{M}-step:
+		\State ~~~ $\langle G_{i+1}, \theta_{i+1}\rangle\leftarrow$ BNLearning($G_i$,$\mathbf{D}_i^*$,$\mathbf{C}$)
+		\State ~~~ $i\leftarrow i+1$
+		\doWhile{Stop criteria is not met} ~~~~~~~~~~~~\tikzmark{right}\tikzmark{sembot}
+		\State  $M\leftarrow$ LearnStudentModel($G_{i}$, $\theta_i$, $\mathbf{D}$) ~~~~~~~~~~~~\tikzmark{lsmtop}\tikzmark{right}
+		\tikzmark{lsmbot}
+	\end{algorithmic}
+	\AddNote{inittop}{initbot}{right}{\footnotesize Initialization}
+	\AddNote{semtop}{sembot}{right}{\footnotesize Learn \\ prerequisites}
+	\AddNote{lsmtop}{lsmbot}{right}{\footnotesize Student\\ modeling}
+	\caption{The REMIND algorithm\label{alg:remind}}
+\end{algorithm}
+
+\subsubsection{Initial Bayesian Network}
+
+REMIND represents the prerequisite structure using Bayesian networks that use latent variables to represent the student knowledge of a skill, 
+and observed variables that represent the student performance answering items (e.g, correct or incorrect).
+We first create an initial Bayesian network that complies to the skill-to-item $Q$-matrix and a set of constraints reflecting experts' belief
+on the prerequisite structure (step 1 of Algorithm~\ref{alg:remind}).
+That is, we create an arc to each item from each of its required skills. 
+Further, if we believe one skill is the direct prerequisite of another skill, we create an arc between them, otherwise we leave all skill variables disconnected.
+With the created Bayesian network as an initial network, we learn the arcs between the skill variables using Structural EM.
+
+\subsubsection{Learn prerequisite structure from data}
+
+A common solution to learning a Bayesian network from data is the score-and-search approach \cite{cooper1992bayesian,heckerman1997bayesian}.
+This approach uses a scoring function to measure the fitness of a Bayesian network structure to the observed data, 
+and manages to find the optimal model in the space of all possible Bayesian network structures.
+However, the conventional score-and-search approaches rely on efficient computation of the scoring function, 
+which is only feasible for problems where data contains observations for all variables in the Bayesian network.
+Unfortunately, our domain has   skill variables that are  not directly observed.
+An intuitive work-around is to use the Expectation Maximization (EM) to estimate the scoring function.
+However, EM in this case takes a large number (hundreds) of iterations to converge and each iteration requires Bayesian network inference, 
+which is computationally prohibitive.
+Further, we need run EM for each candidate structure. The number of possible Bayesian network structures is super-exponential with respect to the number of nodes.
+The Structural Expectation Maximization algorithm \cite{friedman1997learning,friedman1998bayesian} is an efficient alternative.
+%We now summarize how it works.
+
+
+Structural EM is an iterative algorithm that  inputs a matrix $\mathbf{D}$ of student performance (see example Table~\ref{tbl:d-matrix}). %, where columns are the set of exercise items $\mathbf{I}$ and each row contains a student's performances on all these exercise items.
+Figure~\ref{fig:sem} illustrates one iteration of the Structural EM algorithm. The relevant steps are also sketched in Algorithm~\ref{alg:remind}. 
+Each iteration consists of an Expectation step (\emph{E-step}) and a Maximization step (\emph{M-step}). 
+%Structural EM calculates in each iteration a candidate model structure $G$ be by iterating over the Expectation and Maximization steps.
+In \emph{E-step}, we first find the maximum likelihood estimate $\theta^*$ of the parameters 
+for the current structure $G$ calculated from previous iteration using parametric EM.\footnote{In the first iteration, the current network is created from the initialization step.}
+We then do Bayesian inference to compute the expected values for the hidden variables using the current model $(G,\theta^*)$
+and use the values to complete the data.
+In the \emph{M-step}, we use the conventional score-and-search approach to optimize the structure according to the completed data.
+Since the space of possible Bayesian network structures is super-exponential, 
+exhaustive search is intractable and local search algorithms, such as greedy hill-climbing search, are often used.
+The \emph{E-step} and \emph{M-step} interleave and iterate until some stop criteria is met, e.g., the scoring function does not change significantly.
+Contrast to the conventional score-and-search algorithm, Structural EM runs EM only on one structure in each iteration, thus is computationally more efficient.
+
+\begin{figure}
+	\begin{center}
+		%\framebox[4.0in]{$\;$}
+		%\fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
+		\includegraphics[width=1.0\linewidth]{figures/sem.png}
+	\end{center}
+	\caption{\small An illustration of the Structure EM algorithm to discover the structure of the latent variables.}
+	\label{fig:sem} 
+\end{figure} 
+
+REMIND's  initialization step
+%REMIND's implementation of prerequisite discovery we use Structural EM to learn the arcs between skills, but 
+fixes the arcs from skills to items according to the ${Q}$-matrix.
+%For this, we initialize the network as $G_0$ where skill variables and item variables are connected according to the ${Q}$-matrix, but skill variables are disconnected with each other. 
+In  the \emph{M-step} of our Structural EM implementation we only consider the candidate structures that comply with the ${Q}$-matrix.
+%We believe that this reduction of the space of candidate models improves efficiency. %makes the Structural EM more efficient.
+
+An advantage of using Structural EM to discover the prerequisite relationship of skills, is that it is easily extensible to incorporate domain knowledge.
+For example, we can  place constraints on the output structure to force or to disallow a skill to be a prerequisite from another other skill.
+%For example, we can specify an (partial) ordering of the skills, which places constraints on the output structure, such that the skills appearing after a skill $S_i$ in the ordering can not be the prerequisites (ancestors) of $S_i$. 
+%Similarly, in the \emph{M-step} of the Structural EM algorithm, we can modify the algorithm to comply with the constraints.
+%In such way, we can combine the knowledge from experts and the data to build better prerequisite graphs. 
+Consider,  an intelligent tutor that teaches the content of a book. 
+The book content structure provides a natural ordering of the chapters. %, can be used to guide our search for the prerequisite relationship among relevant skills.
+%Domain knowledge can help so we do not allow a remediation intervention from a chapter of an introductory chapter to be selected from later content.
+We may use the book structure to engineer domain knowledge that  an  introductory chapter cannot be remediated  with  content that appears later in the book.
+
+\subsubsection{Learning a student model}
+A statistical model that infers whether or when a skill is mastered by a student is often called a student model.
+%Student models have mainly been proposed for measurement and learning applications.
+%We now compare remedial strategies in these two use cases:
+We now compare remedial strategies in two contexts:
+\begin{itemize}
+	\item  \S~\ref{sec:train_assessment} discusses training a measurement model  where students  solve an evaluation that test their competencies.
+	Depending on their performance, students are  suggested different remediation tasks.
+	\item  \S~\ref{sec:train_learning}  discusses learning remedial intervention that are suggested while the student is still being tutored.
+\end{itemize}
+
+\paragraph{Assessment}
+\label{sec:train_assessment}
+Bayesian networks have been used for a long time in educational assessment.
+For example, in one of their first usages in measurement~\cite{tatsuoka1983rule}, researchers manually designed a network to diagnose students depending on how they solve addition problems.
+However, networks are often designed by a subject matter expert, while REMIND discovers them automatically from data.
+We can use standard techniques, like the EM algorithm, to learn the conditional probability tables of the  prerequisite structure Bayesian network.
+
+\subsection{Using an Intervention Model}
+\label{sec:using_remind}
+We envision two use cases of REMIND.
+We may use student data collected from an assessment instrument, like a quiz or an exam, for REMIND to decide whether to give a remedial intervention.
+Alternatively, a tutoring system may use REMIND to decide if a student should do some remediation.
+For both use cases, REMIND uses the student model (either a Bayesian Network or Prerequisite PFA) to infer the posterior probability of a student mastering the skills and prerequisites.
+If the probability of a student knowing a prerequisite is below a threshold, REMIND suggests  remediation to a student.
+
+For example consider similar data   to  Table~\ref{tbl:d-matrix},  where some of the entries are missing if a student has not answered an item.
+We can use a Bayesian network to calculate the posterior probability of student competencies on skills and their prerequisites.
+%For this, inference can be used to estimate the probability of a student mastering the skill given the mastery status of the prerequisites or given his/her performance on answering any exercise items;
+%and the probability of student answering the item correctly given the mastery status of required skills. %\hl{This is a little bit weird}
+
+\section{Evaluation}
+In \S~{\ref{sec:synthetic}, we  evaluate REMIND with simulated data  to assess the quality of the discovered prerequisite structures.
+	Then, in \S~\ref{sec:real} we  use  data collected from real students.
+	
+	
+	\subsection{Simulated Data}
+	\label{sec:synthetic}
+	%We first use synthetic data to demonstrate the capability of Structural EM in learning the prerequisite structure of latent skill variables.
+	%By using 
+	%various factors, including sample size, number of skill or item variables, prior knowledge, noises in the data, 
+	%affect the learning performance.
+	
+	Synthetic data allows us to study how REMIND compares to ground truth.
+	For this, we engineered three prerequisite structures (DAGs), shown in Figure~\ref{fig:syn-nets}.
+	Here, each figure represents different causal relations between the simulated latent skill variables.
+	%Note that some edges are reversible and represented as undirected edges. 
+	Given observational data, the direction of some edges cannot be determined because the edges are \emph{reversible}%
+	\footnote{
+		Bayesian network theory states that some Bayesian networks  are statistically equivalent.
+		These networks have the same skeleton and the same $v$-structures.
+		A $v$-structure in a Bayesian network $G$ is an ordered triple of nodes $(u,v,w)$ such that $G$ contains the directed edges $u\rightarrow v$ and $w\rightarrow v$ and $u$ and $w$ are not adjacent in $G$. \cite{verma1990equivalence}.
+		%We can represent the set of equivalent Bayesian networks using a complete partially DAG (CPDAG) which consist of a directed edge for every irreversible edge and an undirected edge for every reversible edge.\footnote{A CPDAG is also called a \emph{pattern}.}. In our work, we do not discriminate between the equivalent Bayesian networks. 
+	}.
+	We represent these edges as undirected lines.
+	
+	\begin{figure}
+		%\begin{center}
+		\begin{minipage}[b]{0.45\linewidth}
+			\centering
+			\includegraphics[width=0.9\linewidth]{figures/model1.png}\\~\\
+			(a) Structure 1~\\~\\~\\
+			\includegraphics[width=0.8\linewidth]{figures/model2.png}\\~\\
+			(b) Structure 2
+		\end{minipage}
+		\quad
+		\begin{minipage}[b]{0.45\linewidth}
+			\centering
+			\includegraphics[width=0.7\linewidth]{figures/model3.png}\\~\\
+			(c) Structure 3
+		\end{minipage}	
+		\caption{Three different DAGs between latent skill variables.  Item nodes are omitted.}
+		\label{fig:syn-nets}
+		%\end{center} 
+	\end{figure} 
+	
+	For clarity, Figure~\ref{fig:syn-nets}  omits the item nodes;
+	but each skill node is parent of six item variables.
+	All of these nodes are modeled using binary random variables.
+	More precisely, the latent  nodes represent whether the student  achieves mastery of the skill,
+	and the observed nodes indicate if the student answers the item correctly.
+	Notice that these Bayesian networks include the prerequisite structures as well as the skill-item mapping.
+	
+	We consider simulated data with different number of observations ($n=150, 500, 1000, 2000$).
+	For each sample size and each  DAG, we generate ten different sets of conditional probability tables
+	%\footnote{10 random samples were generated for each sample size and each synthetic Bayesian network model.} %\todo{I reworded this paragraph, please check if it is correct}
+	%We generate conditional probability tables
+	randomly, with two  constraints.
+	First, we enforce that achieving mastery of the prerequisites of a skill will increase the likelihood of mastering the skill.
+	Second, mastery of a skill increases the probability of student correctly answering the test item. 
+	Thus, in total we generated 120 synthetic datasets (3 DAGs x 4 sample sizes x 10 CPTs), and  report the average results.
+	
+	
+	We evaluate how REMIND can discover the true prerequisite structure using metrics designed to evaluate Bayesian networks structure discovery.
+	In particular, we use the $F_1$ \emph{adjacency score} and the $F_1$ \emph{orientation score}.
+	The adjacency score measure how well we can recover connections between nodes.
+	It is a weighted average of the true positive adjacency rate and the true discovery adjacency rate.
+	On the other hand, the orientation score measures how well we can recover the direction of the edges.
+	%To measure the accuracy of edge orientation, we compute the $F_1$ \emph{orientation score}, 
+	It is calculated as a weighted average of the true positive orientation rate and true discovery orientation rate.
+	This metric does not account for the directionality incorrect edges that are reversible.
+	In both cases, the $F_1$ score reaches its best value at 1 and worst at 0. 
+	Moreover, for comparison, we compute the $F_1$ \emph{adjacency score} for Bayesian network structures whose skill nodes are fully connected with each other. 
+	These fully connected DAGs will serve as baselines for evaluating the adjacency discovery.\footnote{We do not compute $F_1$ orientation score for fully connected DAGs because all edges in a fully connected DAG are reversible.}
+	For completeness, we list these formulas in tables~\ref{tbl:ar}~and~\ref{tbl:or}, respectively.
+	
+	
+	% Please add the following required packages to your document preamble:
+	% \usepackage{booktabs}
+	\begin{table}[ht]
+		\centering
+		\caption{Formulas for measuring adjacency rate (AR) \label{tbl:ar}}
+		\label{my-label}
+		\begin{tabular}{@{}ll@{}}
+			\toprule
+			Metric & Formula \\ \midrule
+			True positive    (\emph{TPAR}) & $\frac{ \text{\# of correct adjacencies in learned model} } { \text{ \# of adjacencies in true model} }$  \\
+			True discovery (\emph{TDAR}) &  $\frac{ \text{\# of correct adjacencies in learned model} } { \text{ \# of adjacencies in learned model} }$ \\
+			$F_1$-\textit{AR} &  $\frac{2\cdot \text{\emph{TPAR}} \cdot \text{\emph{TDAR}}} {\text{\emph{TPAR}}+\text{\emph{TDAR}}}$  \\
+			\bottomrule
+		\end{tabular}
+	\end{table}
+	
+	
+	\begin{table}[th]
+		\centering
+		\caption{Formulas for measuring orientation rate (OR) \label{tbl:or}}
+		\label{my-label}
+		\begin{tabular}{@{}ll@{}}
+			\toprule
+			Metric & Formula \\ \midrule
+			True positive  (\emph{TPOR}) & $\frac{ \text{\# of correctly directed edges in learned model} } {\text{ \# of directed edges in true model}}$  \\
+			True discovery   (\emph{TDOR})& $\frac{ \text{\# of correctly directed edges in learned model } }{\text{ \# of directed edges in learned model}} $\\
+			$F_1$-\textit{OR} &  $\frac{  2\cdot \text{\emph{TPOR}} \cdot \text{\emph{TDOR}} }{\text{\emph{TPOR}}+\text{\emph{TDOR}}}$ \\
+			\bottomrule
+		\end{tabular}
+	\end{table}
+	
+	We use these metrics to evaluate the effect of varying the  number of observations  of the training set (sample size) on the quality of learning the prerequisite structure.
+	We designed experiments to specifically answer the following two questions:
+	\begin{enumerate}[noitemsep,topsep=2pt,parsep=0pt,partopsep=0pt]
+		\item How useful is the prior domain knowledge for improving the prerequisite structure discovery?
+		We are  interested in the case where prior knowledge on the node ordering is provided by experts.
+		\item How well does the algorithm perform when there is noise in the data?
+		We focus on studying noise due to the presence of unaccounted hidden variables.% other than skills in the data.
+	\end{enumerate}
+	We now investigate these questions.
+
+
+	\subsubsection{Single-skill vs Multi-skill Items}
+	
+	%Each DAG is compatible with one or several topological orderings. 
+	%If the orderings the truth DAG is compatible with is known,
+	%it can be used to guide the Structural EM in finding the correct model.
+	Figure~\ref{fig:f1-adj-ori} compares the $F_1$ of adjacency discovery and edge orientation result of two conditions. 
+	In the \textit{without ordering} condition, we learn a  Bayesian network  only using  data.
+	In the \textit{with ordering} condition, we provide the node ordering of the true Bayesian network as constraints.
+	The  purpose of  this condition is to simulate the effect of a subject matter expert that provides  useful constraints.
+	
+	%The comparisons of with and without ordering constraint are shown in Figure~\ref{fig:f1-adj-ori} .
+	We observe that the accuracy for both the adjacency and the edge orientation  improves with the amount of data.
+	With just 2000 observations, the algorithm can  recover the true structures almost perfectly.
+	Additionally, using domain knowledge constraints significantly improves the edge orientation accuracy. 
+	In particular, it substantially reduces the \emph{FPOR} and \emph{FNOR} (Figure~\ref{fig:fpor-fnor}). 
+	
+	\begin{figure}[!ht]
+		\begin{center}
+			\begin{tabular}{>{\centering}m{1.5in} >{\centering\arraybackslash}m{1.5in}}
+				\includegraphics[width=1.1\linewidth]{figures/F1A_single.eps} &\includegraphics[width=1.1\linewidth]{figures/F1A_multi.eps}\\
+				\includegraphics[width=1.1\linewidth]{figures/F1O_single.eps} &\includegraphics[width=1.1\linewidth]{figures/F1O_multi.eps}\\
+				Single Skill& Multiple Skill
+			\end{tabular}
+		\end{center}
+		%\vspace{-0.5em}
+		\caption{Comparison of $F_1$ scores for adjacency discovery (top row) and for edge orientation (bottom row). 
+			Horizontal lines are baseline $F_1$ scores computed for fully connected (complete) Bayesian networks.} 
+		\label{fig:f1-adj-ori}
+		%\vspace{-1em}
+	\end{figure} 
+	
+	\subsubsection{Sensitivity to Noise}
+	
+	%\hl{Hard to read}
+	Real-world data sets often contain various types of noise.
+	For example,  noise may occur due to   hidden variables that are not explicitly modeled. 
+	%For example, students' performances in a test also depends on their individual ability (in addition to their mastery status of the required skills). 
+	%This will create noises in the data if we don't directly model the student's ability.
+	To evaluate the sensitivity of REMIND to noise, we synthesize Bayesian networks including a  \emph{StudentAbility} node that takes three possible states (low/med/high). 
+	In these Bayesian networks, students' performance depends not only on whether they have mastered the skill, but also on their individual ability. % (in addition to their mastery status of the required skills). 
+	We first simulated data from  Bayesian networks that have a  \emph{StudentAbility} variable to generate ``noisy" data samples, and 
+	%There is an arc from \emph{StudentAbility} to each item variable in these data generating models. 
+	then use this data to recover the prerequisite structure. % from these truncated data samples. 
+	Figure~\ref{fig:stuabilitymodel} illustrates the procedure of this sensitivity analysis experiment.
+	
+	Figure~\ref{fig:f1-noisy} compare the results were noise was introduced or not.
+	Interestingly, the noise does not harm the learning accuracy at all, and actually improves the accuracy.
+	We hypothesize that the existence of additional hidden variable increases the variance of the data which can help the structure learning.
+	%\hl{Can you show the ``true" Bayes net (i.e, with student ability node) and the one we are trying to learn?}
+	
+	\begin{figure}[!ht]
+		\begin{center}
+			\includegraphics[width=1.0\linewidth]{figures/studentability.png}
+		\end{center}
+		\caption{Evaluation of REMIND with noisy data} 
+		\label{fig:stuabilitymodel}
+	\end{figure}
+	
+	\begin{figure}%[th]
+		\begin{center}
+			\centering
+			\begin{tabular}{>{\centering}m{1.5in} >{\centering\arraybackslash}m{1.5in}}
+				\includegraphics[width=1.1\linewidth]{figures/F1A_single.eps} &\includegraphics[width=1.1\linewidth]{figures/F1A_single_noisy.eps}\\
+				\includegraphics[width=1.1\linewidth]{figures/F1O_single.eps} &\includegraphics[width=1.1\linewidth]{figures/F1O_single_noisy.eps}\\
+				No Noise & Noisy
+			\end{tabular}
+		\end{center}
+		\caption{Results of adding systematic noise. Top: Comparison of $F_1$ scores for adjacency discovery. Horizontal lines are baseline $F_1$ scores computed for fully connected Bayesian networks. Bottom: Comparison of $F_1$ scores for edge orientation. }
+		\label{fig:f1-noisy} 
+	\end{figure}
+	
+	\subsubsection{In Presence of Missing Data}
+	Real-world student performance data often has missing data, i.e., some students do not respond to all test items. Structural EM can also be applied with the missing data. 
+	The general idea is, in the E-step, in addition to completing the values for hidden skill variables, the algorithm has to complete the missing data points.
+	In this experiment, we generated data sets of size 1000 with varying fraction of missing data ($10\%$, $20\%$, $30\%$, $40\%$, $50\%$).
+	We ran our algorithm to recover the BNs. The results are presented in .
+	
+		\begin{figure}%[th]
+			\begin{center}
+				\centering
+				\begin{tabular}{>{\centering}m{1.5in} >{\centering\arraybackslash}m{1.5in}}
+					\includegraphics[width=1.2\linewidth]{figures/F1A_single_missing.eps} &\includegraphics[width=1.2\linewidth]{figures/F1O_single_missing.eps}\\
+				\end{tabular}
+			\end{center}
+			\caption{Results of learning with missing data. Left: Comparison of $F_1$ scores for adjacency discovery. Horizontal lines are baseline $F_1$ scores computed for fully connected Bayesian networks. Right: Comparison of $F_1$ scores for edge orientation. }
+			\label{fig:f1-missing} 
+		\end{figure}  
+
+	
+	\subsubsection{Comparison With PARM Method}
+		\begin{figure}[!th]
+			\begin{center}
+				\centering
+					\includegraphics[width=0.8\linewidth]{figures/F1_parm.eps}
+			\end{center}
+			\caption{Comparison of BNPD and PARM for discovering prerequisite relationships.}
+			\label{fig:f1-parm} 
+		\end{figure}	 
+	
+	\subsection{Real Student Performance Data}
+	\label{sec:real}
+	We now evaluate REMIND using data collected from a commercial non-adaptive tutoring system.
+	We use data from anonymized students interacting with two implementations of a seventh grade math curriculum.
+	One implementation is used by conventional brick-and-mortar schools (we call it \texttt{traditional}),
+	and the other by cyber-charter schools (we call it \texttt{virtual}).
+	Both of our datasets systems use the same curriculum and textbook.
+	The textbook items are classified in chapters, sections, and objectives; but for this paper, we only use the data from the first three chapters.
+	In both systems, we use  performance data while students solve homework and test items.
+	We model the test and homework data using assessment models (\S~\ref{sec:assessment_results}) and learning methods~(\S~\ref{sec:learning_results}), respectively.
+	%\texttt{traditional} is much larger data set than \texttt{virtual}.
+	%In our experiments, the performance results were converted to binary, i.e., correct or incorrect.
+	
+	%We first describe our datasets in more detail (\S~\ref{sec:dataset}).
+	%We then describe the learned prerequisite structure (\S~\ref{sec:prerequisite_results})
+	%as well as our assessment (\S~\ref{sec:assesment_results}) and learning experiments (\S~\ref{sec:learning_results}).
+	%In the following assessments, we will use testing results for evaluating the static Bayesian network model and homework for evaluating the PFA models.
+	
+	%\hl{Mind the note:}
+	%Describe digits and connections dataset, without calling them by that names.
+	%Call them something else, like "Traditional digital tutor", "Cyber-chart digital tutor"
+	%Provide descriptive statistics.
+	%Notice that my experiments I use the homework table.  Describe that there are homeworks \& Test
+	
+	\subsubsection{Assessment Experiments}
+	\label{sec:assessment_results}
+	We now evaluate how REMIND  discovers a remedial model in the assessment context using test data.
+	For this, \S~\ref{sec:preprocessing} describes  the data filtering  and the $Q$-matrix we use;
+	\S~\ref{sec:prerequisite_results} describes the prerequisite structure discovered by REMIND;
+	\S~\ref{sec:assessment_quantitative} describes a quantitative evaluation of the remediation model.
+	
+	\paragraph{$Q$-matrix and preprocessing}
+	\label{sec:preprocessing}
+	We use an item-to-skill mapping ($Q$-matrix) that assigns each exercise to a skill  solely as the book section in which the item appears.
+	This $Q$-matrix does not convey any information on how or when to offer a remedial intervention to a learner.
+	For this, we investigate the extent on which REMIND can discover a remediation model using student performance data.
+	We process both of our datasets to  find a subset of  items and students that does not have missing data.
+	This is,  the dataset we use in REMIND has  students  responding to \textit{all} of the  items.
+	
+	%Table~\ref{tab:seclistdata} lists the twelve skills (book sections) remaining after filtering.
+	After filtering, each skill (book section) has two to four items, for a total of  33  items.
+	The resulting dataset from the \texttt{traditional} implementation includes student test results for 5202 students; 
+	while the \texttt{virtual} implementation has the test results for 467 students.
+	Our synthetic data experiments suggest that a large number of training data improves the learning quality of the prerequisite structure.
+	For this reason, we use the larger \texttt{traditional} dataset to build the prerequisite model.
+	
+	
+	\paragraph{Prerequisite Structure Discovery}
+	\label{sec:prerequisite_results}
+	We now describe how we use the REMIND algorithm to learn a remedial model.
+	For simplicity we use binary variables to encode  performance data (i.e, correct or incorrect) and skill variables  (i.e., mastery or not mastery).
+	This simplification is not necessary,  as REMIND is able to use  discrete variables with arbitrary number of states.
+	We use an implementation of Structural EM available online called LibB\footnote{\url{http://compbio.cs.huji.ac.il/LibB/programs.html}}.
+	We experiment with two conditions:
+	\begin{itemize}[noitemsep,topsep=2pt,parsep=0pt,partopsep=0pt]
+		\item We use domain knowledge to constrain the prerequisite structure.
+		Since our skills correspond to the book sections, we use  the table of contents as expert knowledge.
+		We constraints skills so that a skill $a$ can be prerequisite of a skill $b$, iff $a$ appears before $b$ in the table of contents of the textbook.
+		%\todo{is this a fair description? i don't think you described what ``book order'' is before...} 
+		\item Alternatively, we also experiment using a fully data-driven approach in which REMIND learns the prerequisite structure without any constraints.
+	\end{itemize} 
+	
+	
+	\begin{figure*}[tbh]
+		\centering
+		\begin{subfigure}[t]{0.33\linewidth}
+			\centering
+			\includegraphics[height=2.5in]{figures/learned_dag_qmatrix.pdf}
+			\caption{$Q$-matrix represented as a Bayes network \label{fig:qmatrix}}
+		\end{subfigure}
+		\begin{subfigure}[t]{0.33\linewidth}
+			\centering
+			\includegraphics[height=2.5in]{figures/learned_dag_constraint.pdf}
+			\caption{Network constrained by domain knowledge \label{fig:constraint}}
+		\end{subfigure}
+		\begin{subfigure}[t]{0.33\linewidth}
+			\centering
+			\includegraphics[height=2.5in]{figures/learned_dag_noconstraint.pdf}
+			\caption{Network with no constraints \label{fig:noconstraint}}
+		\end{subfigure}
+		\caption{Prerequisite structures constructed by Structural EM. Nodes have been augmented with color information to emphasize the chapter association. Reversible edges are depicted as undirected. Squares represent the exercise items.\label{fig:prereqmodels} }
+	\end{figure*}
+	
+	\begin{figure}[!ht]
+		\begin{center}
+			\includegraphics[width=1.0\linewidth]{figures/chap123_noorder_cpt_1_line.png}~\\
+			\includegraphics[width=1.0\linewidth]{figures/chap123_noorder_cpt_2_line.png}~\\
+			\includegraphics[width=1.0\linewidth]{figures/chap123_noorder_cpt_3_line.png}
+		\end{center}
+		\caption{Visualization of the estimated conditional probability distributions for prerequisite structure model in Figure~\ref{fig:prereqmodels} (a). 
+			Each plot depicts the conditional probability of mastering a skill given the mastery status of its direct prerequisites.
+			Parents($\cdot$) specifies the direct prerequisites of the skill. 
+			In X-axis, 0 means the corresponding prerequisite is not mastered and 1 otherwise.} 
+		\label{fig:chap123noorderCPT}
+	\end{figure}
+	
+	
+	Figure~\ref{fig:prereqmodels} illustrates Bayesian networks generated with the REMIND algorithm.
+	Figure~\ref{fig:qmatrix} represents a disconnected model generated by simply converting the input $Q$-matrix into a Bayesian network;
+	this corresponds to the output of the initialization step of Algorithm~\ref{alg:remind}.
+	Figures~\ref{fig:constraint} and~\ref{fig:noconstraint} represent the prerequisite structures discovered by using domain knowledge or not.
+	In the fully data-driven model, we draw with red the edges that contradict our text book ordering heuristic.
+	%Note that some edges are undirected indicating these directionalities of these edges can not determined given the observational data.
+	Our observation is that the structures learned are not random, sections (skills) in the same chapter tend to form clusters, 
+	even in the structure learned without the ordering constraint.
+	%Further, the inferred prerequisite structure are intuitively plausible, 
+	%as the topological order of the sections are roughly consistent with the book structure, even in the structure learned without the ordering constraint\todo{are you sure?}.
+	We should mention that the BIC score\footnote{In our experiment, we use the Bayesian information criterion (BIC) score to measure the fitness of a Bayesian network to the data. The BIC score for a Bayesian network model is composed of a likelihood term and a term to penalize the model complexity.} of the structure learned without the ordering constraint is slightly better than the BIC score of that learned with the ordering constraint, indicating that the first model fits the data better than the second one does.
+	
+	
+
+	Our approach also outputs the conditional probabilities associated with each skill and its direct prerequisites.
+	Figure~\ref{fig:chap123noorderCPT} plots the conditional distribution table for each skill.
+	Each sub-figure plots the conditional probability of student achieving the mastery of a skill against the mastery status of the skill's direct prerequisites. 
+	More specifically, X-axis specifies all possible mastery statuses of a skill's direct prerequisite, 
+	Y-axis is the probability of student achieving the mastery of the skill given the corresponding mastery status of its direct prerequisites.
+	We can see a trend in all plots that the probability of student mastering a skill increases monotonically when the student has acquired more prerequisites of the skill.
+	This is consistent with our intuition that mastering a skill's prerequisites will help student master the skill.
+	We also observed a small contradiction in the case of skill 3-2, which exemplifies the limitation of fully data-driven methods. 
+	%\hl{Please describe this figure with much more detail than this.  This currently does not have enough explanation to be understandable}
+	
+	\paragraph{Quantitative evaluation}
+	\label{sec:assessment_quantitative}
+	
+	We now evaluate  REMIND using data  that has already been collected (\textit{post-hoc} analysis). %an evaluation of the REMIND algorithm using  . 
+	We evaluate how well the discovered Bayesian networks can predict  student performance on a 
+	%student's knowledge about a skill given his/her performance on any of the test items. 
+	%Since student's knowledge about a skill is not directly observed, 
+	%we are unable to assess the predictive performance of these models involved in this task.
+	%However, we have direct observations on students' performance on test items. 
+	%For this, we evaluate  predicting student performance
+	on a test item given performance on other items.
+	In particular, we compute the posterior probability of a student's response to an item $I_i$ given his performance on all other items 
+	$\mathbf{I}_{-i}=\mathbf{I}\setminus\{I_i\}$, by marginalizing:
+	\begin{align}
+		P(I_i=1|\mathbf{I}_{-i}=\mathbf{i}_{-i}) =\sum_{\mathbf{S}}P(I_i, \mathbf{S}|\mathbf{I}_{-i}=\mathbf{i}_{-i}),
+	\end{align}
+	This can be computed efficiently using the Junction tree algorithm \cite{koller2009probabilistic}. 
+	We then do binary classification based on the posterior probability.
+	
+	We compare REMIND with four baseline predictors:
+	\begin{itemize}
+		\item  A \emph{majority} classifier which always classifies  an instance to the majority class.
+		For example, if majority of the students get an item wrong, other students would likely get it wrong.
+		\item  A Bayesian network model in which the skill variables are \emph{disconnected}. 
+		This corresponds to using the $Q$-matrix  Bayesian network of Figure~\ref{fig:qmatrix}.
+		This model assumes that the skill variables are marginally independent of each other.
+		\item A Bayesian network model in which the skill variables are connected in a \emph{chain} structure, i.e., 1-1$\rightarrow$1-2$\rightarrow$1-3$\rightarrow\dots$
+		This assumes that a section (skill) only depends on the previous section.
+		In other words, a first-order Markov chain dependency structure.
+		\item A \emph{fully connected} Bayesian network where skill variables are fully connected with each other.
+		This model assumes no conditional independence between skill variables and can encode any joint distribution over the skill variables.
+		However, it has exponential number of free parameters and thus can easily overfit the data.
+	\end{itemize}
+	
+	The parameters of these baseline Bayesian network predictors are estimated from the \texttt{traditional} data set.
+	We first did cross-validation experiments to evaluate these classifiers using the \texttt{traditional} data.
+	Figure~\ref{fig:auc-cv} evaluates the model predictions using  the \textit{Area Under the Curve} (AUC) of the Receiver Operating Characteristic (ROC) curve metric.
+	The error bars show the $95\%$ confidence intervals calculated from the 10-fold cross-validation.
+	The  best performing models are REMIND with ordering constraint with an AUC of $0.804\pm0.007$ and REMIND with no ordering constraint with an AUC of $0.807\pm0.006$. % and correspond to and no constraints, respectively.
+	%these models are: $0.691\pm0.011$ (\emph{majority}), $0.761\pm0.007$ (\emph{disconnected}), $0.796\pm0.006$ (\emph{chain}),  $0.804\pm0.007$ (\emph{prerequisite model with order constraint}), $0.807\pm0.006$ (\emph{prerequisite model without order constraint}), $0.794\pm0.007$ (\emph{fully connected}).
+	%The comparison of the Area Under Curve (AUC) \todo{Area of what curve? ;-)} for these classifiers is presented in Figure~\ref{fig:auc-cv}.
+	These two REMIND models outperform the other four models.
+	%\hl{How much is the AUC, though? Explain the graph with words here}
+	The \emph{chain} model performs the best among the four baseline predictors with an AUC of $0.796\pm0.006$.
+	A paired $t$-test reveals that both of the REMIND models significantly outperform the \emph{chain} model (the $p$-values are 0.0064 and 0.003).
+	However, the two REMIND prerequisite models are not statistically different from each other. 
+	We note that the \emph{fully connected} model was outperformed by the two prerequisite models and the \emph{chain} model, suggesting  overfitting.% might have happened. 
+	
+	%\begin{figure}
+	%	\begin{center}
+	%		\includegraphics[width=0.95\linewidth]{figures/chap123_auc_allmodels.eps}
+	%	\end{center}
+	%	\caption{\small Comparison of AUC of six models to predict student performance on exercise items for \texttt{traditional} data set. The results are from 10 fold cross-validation.} 
+	%	\label{fig:auc-cv}
+	%\end{figure} 
+	%
+	%\begin{figure}
+	%	\begin{center}
+	%		\includegraphics[width=1.0\linewidth]{figures/chap123conn_auc_allmodels.eps}
+	%	\end{center}
+	%	\caption{\small Comparison of AUC of six models to predict student performance on exercise items for \texttt{virtual} data set. Models are trained using  \texttt{traditional} data set.} 
+	%	\label{fig:conn-auc}
+	%\end{figure}
+	
+	We now investigate the extent of which a REMIND model can be generalized to a different implementation of the curriculum. 
+	For this, we use the models constructed from students using the \texttt{traditional} curriculum  to make prediction on the \texttt{virtual} curriculum.
+	The comparison of AUCs is illustrated in Figure~\ref{fig:conn-auc}.
+	The error bars show the $95\%$ confidence intervals calculated with an implementation of 
+	the Logit method\footnote{\url{http://www.subcortex.net/research/code/area_under_roc_curve}}, 
+	which corrects for the non-independence of the points of the ROC curve.
+	Again, the two REMIND prerequisite models clearly outperform other four models. 
+	The AUCs of both REMIND models are $0.784\pm0.010$.
+	Curiously, in this experiment the difference between REMIND and the chain baseline becomes more prominent.
+	
+	\begin{figure}[ht]
+		\centering
+		\begin{subfigure}[b]{1.0\linewidth}
+			\centering
+			\includegraphics[width=0.9\linewidth]{figures/chap123_auc_allmodels.eps}
+			\caption{\texttt{traditional} AUC results. The results are from 10 fold cross-validation.}
+			\label{fig:auc-cv}
+		\end{subfigure}\\
+		\begin{subfigure}[b]{1.0\linewidth}
+			\centering
+			\includegraphics[width=0.9\linewidth]{figures/chap123conn_auc_allmodels.eps}
+			\caption{\texttt{virtual} AUC results. Models are trained using  \texttt{traditional} data set.}
+			\label{fig:conn-auc}
+		\end{subfigure}%
+		\caption{Comparison of AUC of six models to predict student performance on exercise items}
+	\end{figure} 
+	
+	
+	
+	
+	
+	\section{Relation to Prior Work\label{sec:relatedwork}}
+	We believe we are the first ones to propose a pipeline of learning the prerequisite dependencies from data and use it for student modeling. 
+	Our work builds on prior work that discovers prerequisite  from data \cite{desmarais2006learned,vuong2010method, brunskill2010estimating,scheines2014discovering,chen2015discovering,piech2015deep}.
+	However, these approaches do not attempt to validate the prerequisite discovered using real student performance data.
+	Our approach differs from prior work in several ways.
+	The approaches  discover the relationship of items without using latent variables.
+	This is, the prerequisites do not use skill mappings, and only find dependencies between items~\cite{desmarais2006learned,vuong2010method,piech2015deep}.
+	%i.e., the item-level prerequisite relationships, while we try to discover the prerequisite relationships between hidden skills.
+	For the approaches that can account for latent variables~\cite{brunskill2010estimating,chen2015discovering}, they focus on estimating the pairwise prerequisite relationships.
+	By contrast, we try to optimize the full structure of the model.
+	
+	A contribution of our work is introducing the Structural EM algorithm to the educational community.
+	This approach has many advantages over prior work in that it does not require tuning of many parameters.
+	For example, prior work~\cite{brunskill2010estimating} assumes  domain parameters called \emph{guess probability} and \emph{slip probability}
+	%\footnote{The \emph{guess probability} is the probability of answering the correctly given the student does not know the skill; the \emph{slip probability} is the probability of answering incorrectly given the student knows the skill} 
+	are provided for each pair of item and skill.
+	Similarly, more recent approaches~\cite{chen2015discovering} require manually specified thresholds to determine the existence of a prerequisite relationship.
+	The determination of these thresholds requires experts' intervention. 
+	By contrast, the only required input of our algorithm is the observed student performance.
+	
+	A limitation of our work is that we do not address in this paper is comparing Structural EM with these approaches.
+	Future work may address a comprehensive comparison of different prerequisite structure methods.
+	
+	
+	%\hl{Two parts: Prerequisite discovery and student modeling with multiple kcs}
+	%\hl{For prereq work: Cite Ilya's work, French lab, Thorsten's work, may be Deep KT work}
+	%\hl{Have a comparative table of prereq work}
+	%\hl{For student modeling with multiple KCs cite LR-DBN work by YanBo, Topical HMM \&FAST work by Jose, conjunctive kt by Ken Koedinger}
+	
+	\section{Conclusion}
+	Although in some educational paradigms~\cite{koedinger2010knowledge} students are not supposed to move to subsequent lessons until they have mastered all of the prerequisites, these is not always attainable in practice.
+	We propose and evaluate the REMIND pipeline, a simple but effective novel algorithm that detects when a student needs remediation.
+	
+	A limitation of our study is that we only evaluated REMIND using simulations and posthoc analyses.
+	Future work may evaluate the REMIND algorithm in a randomized control trial.
+	Further, we evaluated our models using traditional statistical metrics, 
+	but recent work suggest that tailored evaluation metrics for tutoring system may be superior \cite{leopard_edm}.
+	Thus, another piece of future work is to evaluate REMIND using these evaluation metrics.
+	
+	The main contributions of our work are:
+	a novel data-driven algorithm that allows domain knowledge for designing remediation triggers;
+	a novel methodology to evaluate prerequisite graphs using student data;
+	and suggesting the Structural EM algorithm for educational applications.
+	
+	The advantage of REMIND are both qualitative and quantitative.
+	Qualitatively, REMIND allows us to understand the organization of the skills in the curriculum as it builds a prerequisite network of the skills in a $Q$-matrix.
+	When used in a learning model, REMIND builds a hypothesis of how practice affects the knowledge of the student.
+	Sometimes the practice may affect the skill directly, but sometimes it may affect a prerequisite.
+	Future work may validate these hypothesis in a controlled experiment.
+	Additionally, our quantitative results suggest that REMIND can be used to improved student modeling.
+	Overall, we believe that REMIND is promising technology to detect when a student needs help.
+% REFERENCES FORMAT
+% References must be the same font size as other body text.
+\bibliographystyle{SIGCHI-Reference-Format}
+{
+	\bibliography{references}
+}	
+
+\end{document}
