@@ -143,15 +143,16 @@
 
 \maketitle
 \begin{abstract}
-Understanding the prerequisite structure of skills is crucial for designing curriculum, assessing mastery and for student modeling.
+Knowing the prerequisite structure of skills is crucial for designing curriculum, assessing mastery and for student modeling.
+These prerequisite structures are hand-engineered by subject matter expert in a costly and time-consuming process.
 %Traditionally, the prerequisite structures of skills are manually specified by human experts and this process is often time-consuming.
-Automatic discovery of the prerequisite structures from educational data is intriguing yet challenging since student's mastery of skills are latent variables.
-In this work, we proposed a novel data-driven approach to discover the prerequisite structure of skill given student performance on test items. 
-By modeling the prerequisite relations as a Bayesian network, we then estimate the causal structure and the probabilistic dependence among the skills 
-via a two-stage structural learning algorithm. 
-In the first stage, the skeleton of the Bayesian network is constructed using Structural Expectation Maximization (Structural EM) algorithm;
-In the second stage,  the edges are oriented by enforcing the constraints on estimated conditional probability distributions.
-We validate the proposed approach using simulations and by post-hoc analysis of student data.
+%Automatic discovery of the prerequisite structures from educational data is intriguing yet challenging since student's mastery of skills are latent variables.
+In this paper, we introduce a novel data-driven pipeline for inferring the prerequisite structure of skill from student performance on test items. 
+By modeling the prerequisite relations as a Bayesian network, the pipeline estimates the causal structure and the probabilistic dependence among the skills 
+via a two-stage learning process. 
+In the first stage, the Structural Expectation Maximization (Structural EM) algorithm is used to select a class of Bayesian networks based on distribution fitting of student data;
+in the second stage, a single Bayesian network structure is selected by enforcing constraint on the estimated conditional probability tables.
+We validate the proposed pipeline using simulations and by post-hoc analysis of student data.
 We show the discovered prerequisite structure can improve the student model in predicting student performance. 
 \end{abstract}
 
