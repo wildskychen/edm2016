@@ -216,7 +216,7 @@ It then learns the Bayesian network through a two-stage process.
 
 \section{Previous Work}
 \label{sec:previous_work}
-There have been many works investigating the discovery of prerequisite structures within domain models from data.
+Many works have investigated the discovery of prerequisite structures within domain models from data.
 Some of these works aim to learn the prerequisite structure of observed variables, e.g., the relationships among exercise problems.
 These include the Partial Order Knowledge Structures (POKS) algorithm \cite{desmarais2006learned, pavlik2008using} to learn the item-item relationships
 and the approach to determine the dependency structure of units in a curriculum with the student performance data observed at the unit level \cite{vuong2011method}.
@@ -315,7 +315,8 @@ We now describe the  steps of BNPD in detail.
 		\State $EC\leftarrow EnumEquivalentDAGs(G_i)$
 		\State $DE\leftarrow \{\}$
 		\For{every reversible edge $S_i - S_j$ in $RE$}
-		\State $ratio=\frac{P(S_i=1|S_j=1)\cdot P(S_j=0|S_i=0)}{P(S_j=1|S_i=1)\cdot P(S_i=0|S_j=0)}$
+		%\State Compute $P(S_i=1|S_j=1)$, $P(S_j=0|S_i=0)$\\~~~~~$P(S_j=1|S_i=1)$ and $P(S_i=0|S_j=0)$
+		\State $ratio\leftarrow\frac{P(S_i=1|S_j=1)\cdot P(S_j=0|S_i=0)}{P(S_j=1|S_i=1)\cdot P(S_i=0|S_j=0)}$\footnote{}
 		\If {$ratio>1$}
 		\State $ratio^*=ratio$
 		\State $DE\leftarrow DE\cup S_i\rightarrow S_j$ 
@@ -337,6 +338,7 @@ We now describe the  steps of BNPD in detail.
 	\AddNote{lsmtop}{lsmbot}{right}{\footnotesize Refine models}
 	\caption{The BNPD algorithm\label{alg:remind}}
 \end{algorithm}
+\footnotetext{$P(S_i=a|S_j=b)$ can be computed using any Bayesian network inference algorithm such as Junction tree algorithm\cite{koller2009probabilistic}}
 
 \subsection{Initial Bayesian Network}
 
@@ -405,26 +407,53 @@ The book content structure provides a natural ordering of the chapters. %, can b
 %Domain knowledge can help so we do not allow a remediation intervention from a chapter of an introductory chapter to be selected from later content.
 We may use the book structure to engineer domain knowledge that  an  introductory chapter cannot be prerequisite of content that appears later in the book.
 
-\subsection{Orient Reversible Edges}
+\subsection{Discriminate Between Equivalent BNs}
 
 Structural EM selects Bayesian network model based on how well it explains the distribution of the data. 
-Bayesian network theory states that some Bayesian networks are statistically equivalent and thus not distinguishable by the scoring functions.
-Thus, the output from Structure EM is an equivalence class containing many Bayesian network structures, which have the same skeleton and the same $v$-structures\footnote{
-A $v$-structure in a Bayesian network $G$ is an ordered triple of nodes $(u,v,w)$ such that $G$ contains the directed edges $u\rightarrow v$ and $w\rightarrow v$ and $u$ and $w$ are not adjacent in $G$. \cite{verma1990equivalence}.}. The equivalence class can be represented using a complete partially DAG (CPDAG) which consist of a directed edge for every irreversible edge and an undirected edge for every reversible edge.\footnote{A CPDAG is also called a \emph{pattern}.}.
-It turns out we can discriminate between these equivalent Bayesian networks based the following observation.
+Bayesian network theory states that some Bayesian networks are statistically equivalent and thus not distinguishable by the scoring function.
+Thus, the output from Structure EM is an equivalence class that may contain many Bayesian network structures. 
+These equivalent Bayesian networks have the same skeleton and the same $v$-structures\footnote{
+A $v$-structure in a Bayesian network $G$ is an ordered triple of nodes $(u,v,w)$ such that $G$ contains the directed edges $u\rightarrow v$ and $w\rightarrow v$ and $u$ and $w$ are not adjacent in $G$. \cite{verma1990equivalence}.}, and can be represented with a complete partially DAG (CPDAG) which consist of a directed edge for every irreversible edge and an undirected edge for every reversible edge\footnote{A CPDAG is also called a \emph{pattern}.}. 
+We can discriminate between these equivalent Bayesian networks based the following observation.
 
-\textbf{Observation 1}. If $S_1$ is a prerequisite of $S_2$, i.e., $S_1\rightarrow S_2$, then $P(S_1=1|S_2=1)\approx 1$ and $P(S_2=0|S_1=0)\approx 1$.
+\textbf{Rule 1}. $S_1$ is a prerequisite of $S_2$, i.e., $S_1\rightarrow S_2$, if and only if $P(S_1=1|S_2=1)= 1$ and $P(S_2=0|S_1=0)= 1$.
+
+\textbf{Rule 1} says if a skill $S_1$ is the prerequisite of a skill $S_2$,
+a student must master skill $S_1$ before he masters $S_2$ and it is impossible for him to master $S_2$ if he has not mastered $S_1$.
+This puts additional constraints on the estimated joint distribution.  
+However, in real situations, it is possible for a student to know the post-requisite even he does not know the prerequisite. 
+Further, there are always noises in the data. Thus, the two conditional probabilities $P(S_1=1|S_2=1)$ and $P(S_2=0|S_1=0)$ are not exactly but close to 1.
+Since equivalent Bayesian networks agree on the skeleton but differ in the orientation of some edges, determining a single Bayesian network structure
+is equivalent to determining the orientation of the reversible edges.
 
 
-\begin{figure}[!ht]
-	\begin{center}
-		%\framebox[4.0in]{$\;$}
-		%\fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
-		\includegraphics[width=0.8\linewidth]{figures/orientedgeexample.png}
-	\end{center}
-	\caption{\small An illustration of the Structure EM algorithm to discover the structure of the latent variables.}
-	\label{fig:orientededgeexample} 
-\end{figure} 
+%\begin{figure}[!ht]
+%	\begin{center}
+%		%\framebox[4.0in]{$\;$}
+%		%\fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
+%		\includegraphics[width=0.8\linewidth]{figures/orientedgeexample.png}
+%	\end{center}
+%	\caption{\small An illustration of the Structure EM algorithm to discover the structure of the latent variables.}
+%	\label{fig:orientededgeexample} 
+%\end{figure}
+
+	\begin{figure}[!ht]\small
+		\centering
+		\begin{subfigure}[t]{0.45\linewidth}
+			\centering
+			\includegraphics[width=0.5\linewidth]{figures/s1s2.png}
+			\caption{\label{fig:equivnet1}}
+			$P(S_1=1|S_2=1)=0.86$ \\ $P(S_2=0|S_1=0)=0.92$
+		\end{subfigure}
+		\begin{subfigure}[t]{0.45\linewidth}
+			\centering
+			\includegraphics[width=0.5\linewidth]{figures/s2s1.png}
+			\caption{\label{fig:equivnet2}}
+			$P(S_2=1|S_1=1)=0.52$ \\ $P(S_1=0|S_2=0)=0.64$
+		\end{subfigure}
+		\caption{Two equivalent Bayesian networks representing different prerequisite structures can be discriminated by conditional probability tables.\label{fig:equivnets} }
+	\end{figure}
+ 
 
 \section{Evaluation}
 In \S~{\ref{sec:synthetic}, we  evaluate REMIND with simulated data  to assess the quality of the discovered prerequisite structures.
