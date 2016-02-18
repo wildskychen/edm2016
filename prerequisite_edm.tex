@@ -430,9 +430,9 @@ We can check for each reversible edge $S_i-S_j$ in the Bayesian network, either 
 If the former holds, $S_i\rightarrow S_j$; otherwise, $S_i\leftarrow S_j$.  
 However, in real situations, it is possible for a student to master the post-requisite even he does not know the prerequisite. 
 Further, there is always noise in the data. Thus, the two conditional probabilities $P(S_1=1|S_2=1)$ and $P(S_2=0|S_1=0)$ are not exactly but close to 1.
-Instead, we use the following empirical rule: if $P(S_1=1|S_2=1)\cdot P(S_2=0|S_1=0)>P(S_2=1|S_1=1)\cdot P(S_1=0|S_2=0)$, we determine $S_1\rightarrow S_2$; 
+Thus, we use the following empirical rule: if $P(S_1=1|S_2=1)\cdot P(S_2=0|S_1=0)>P(S_2=1|S_1=1)\cdot P(S_1=0|S_2=0)$, we determine $S_1\rightarrow S_2$; 
 otherwise, we determine $S_1\leftarrow S_2$. 
-The intuition behind this is two probabilities $P(S_1=1|S_2=1)$ and $P(S_2=0|S_1=0)$ are certificate of the prerequisite structure $S_1\rightarrow S_2$.
+The intuition behind this is that the two probabilities $P(S_1=1|S_2=1)$ and $P(S_2=0|S_1=0)$ are certificates of the prerequisite structure $S_1\rightarrow S_2$.
 The larger of these two probabilities, the more likely the relationship $S_1\rightarrow S_2$ holds.
 Since here we are concerned with which direction the edge goes, we simply compare the products of two probabilities and select the direction that is more probable. 
 
@@ -454,15 +454,15 @@ Since here we are concerned with which direction the edge goes, we simply compar
 	\end{figure}
 
 Using the empirical rule, we can orient every reversible edge in the network structure. 
-However, the determinations of edge's orientation are not independent and may conflict each other.
-Having oriented one edge would constrain the orientation of other reversible edges since we have to ensure the graph is a DAG and in the same equivalence class.
-Thus, for each reversible edge $S_i-S_j$, we compute $ratio=\frac{P(S_i=1|S_j=1)\cdot P(S_j=0|S_i=0)}{P(S_j=1|S_i=1)\cdot P(S_i=0|S_j=0)}$ 
-and $ratio*=ratio$ if $ratio >1$, $ratio*=\frac{1}{ratio}$ otherwise. The larger the $ratio*$ is, the more confidently we decide the orientation.
-We sort the list of reversible edges by $ratio*$ in descending order. We then orient the edges in this order.
-When one edge is oriented, the constraint propagates. In the implementation, we take a different strategy: 
+However, the determinations of all edges' orientations are not independent and may conflict each other.
+Having oriented one edge would constrain the orientation of other reversible edges because we have to ensure the graph is a DAG and in the same equivalence class.
+Thus, for each reversible edge $S_i-S_j$, we compute $ratio=\frac{P(S_i=1|S_j=1)\cdot P(S_j=0|S_i=0)}{P(S_j=1|S_i=1)\cdot P(S_i=0|S_j=0)}$,
+then  $ratio^*=ratio$ if $ratio >1$ and $ratio^*=\frac{1}{ratio}$ otherwise. The larger the $ratio^*$ is, the more confidently when we decide the orientation.
+We sort the list of reversible edges by $ratio^*$ in descending order. We then orient the edges in this order.
+When one edge is oriented, the constraint is propagated to other reversible edges. In practical implementation, we take a different strategy: 
 we first enumerate all equivalent Bayesian networks and make them a list of candidates; 
 when an edge is oriented to $S_i\rightarrow S_j$, we remove all contradicting Bayesian networks from the list.
-Eventually only one Bayesian network structure stands. This procedure is detailed in the \emph{Orient edges} section of Algorithm~\ref{alg:bnpd}  
+Eventually only one Bayesian network structure stands. This procedure is also detailed in the \emph{Orient edges} section of Algorithm~\ref{alg:bnpd}  
 
 \section{Evaluation}
 In \S~{\ref{sec:synthetic}, we  evaluate BNPD with simulated data  to assess the quality of the discovered prerequisite structures.
@@ -573,7 +573,7 @@ Then, in \S~\ref{sec:real} we  use  data collected from real students.
 		\item How well does BNPD perform when there is noise in the data?
 		We focus on studying noise due to the presence of unaccounted hidden variables.% other than skills in the data.
 		\item How well does BNPD perform when the student performance data has missing values?
-		\item How well does BNPD compare with other prerequisite discovery methods?
+		\item How is BNPD compared with other prerequisite discovery methods?
 		Here we compare BNPD to the Probabilistic Association Rules Mining (PARM) method \cite{chen2015discovering}.
 	\end{enumerate}
 	We now investigate these questions.
@@ -581,12 +581,12 @@ Then, in \S~\ref{sec:real} we  use  data collected from real students.
 
 	\subsubsection{Single-skill vs Multi-skill Items}
 	
-	We consider two conditions where different types of $Q$-matrix are used. In the first one,
+	We consider two situations where different types of $Q$-matrix are used. In the first situation,
 	each item node maps to only one skill node. In the second one, each item loads 1-3 skills. 
 	Figure~\ref{fig:f1-single-multi} compares the $F_1$ of adjacency discovery and edge orientation result under two types of $Q$-matrix.
 	We observe that the accuracy for both the adjacency and the edge orientation  improves with the amount of data.
 	With just 2000 observations, the algorithm can recover the true structures almost perfectly.
-	Additionally, when the model contains multiple-skill items, the accuracy is slightly lower than that when there are single-skill items in the model,
+	Additionally, when the model contains multiple-skill items, the accuracy is slightly lower than that where all items in the model are single-skilled items,
 	probably because there are more parameters to be estimated in the case of multi-skill items. 
 	
 	\begin{figure}[!ht]
@@ -666,21 +666,21 @@ Then, in \S~\ref{sec:real} we  use  data collected from real students.
 	
 	\subsubsection{Comparison With PARM}
 	Chen and his colleagues proposed to use Probabilistic Association Rules Mining (PARM) for discovering the prerequisite relationships between skills \cite{chen2015discovering}.
-	Since PARM only discovers pair-wise prerequisite relationship, instead of constructing the full structure,
+	Since PARM discovers pair-wise prerequisite relationship, instead of constructing the full structure,
 	we only compare BNPD with PARM for discovering the pair-wise relationships.
 	That is, we derived pair-wise prerequisite relationships from the Bayesian network structure and see how the two approaches discover these relationships.
-	Here we simulated data from Structure 3 (Figure~\ref{fig:syn-nets}(c)) with single-skilled items, which has 21 pair-wise prerequisite relationships.
+	Here we simulated data from Structure 3 (Figure~\ref{fig:syn-nets}(c)) (with single-skilled items), which has 21 pair-wise prerequisite relationships.
 	When experimenting iwth PARM, the following cutoff values were used: $ minsup=0.125$, $minconf=0.76$, $minprob=0.9$. 
-	These values were also used in the simulation experiments in \cite{chen2015discovering}.
+	These values have been used in the simulation experiments in \cite{chen2015discovering}.
 	The evaluation metric used is $F_1=\frac{2*TPR*TDR}{TPR+TDR}$, where $TPR=\frac{\text{\# of correct relationships learned}}{\text{\# of relationships in true model}}$
 	and $TDR=\frac{\text{\# of correct relationships learned}}{\text{\# of relationships in learned model}}$.
-	The result is presented in Figure~\ref{fig:f1-parm}. It shows that BNPD significantly outperforms PARM for sample size $n\ge 500$.
+	The result is presented in Figure~\ref{fig:f1-parm}. It shows that BNPD significantly outperforms PARM $F_1$ score for sample size $n\ge 500$.
 	The lower $F_1$ score by PARM is caused by lower $TPR$, i.e., PARM failed to discover many prerequisite relationships (data not shown).
 	
 		\begin{figure}[!th]
 			\begin{center}
 				\centering
-					\includegraphics[width=0.8\linewidth]{figures/F1_parm.eps}
+					\includegraphics[width=0.7\linewidth]{figures/F1_parm.eps}
 			\end{center}
 			\caption{Comparison of BNPD and PARM for discovering prerequisite relationships in Structure 3. The cutoff values used for PARM experiments are: $ minsup=0.125$, $minconf=0.76$, $minprob=0.9$.}
 			\label{fig:f1-parm} 
@@ -691,26 +691,35 @@ Then, in \S~\ref{sec:real} we  use  data collected from real students.
 	We now evaluate BNPD using two real-world student data sets.
 	
 	\subsubsection{ECPE Data Set}
-	The ECPE (Examination for the Certification of Proficiency in English).
+	The ECPE (Examination for the Certification of Proficiency in English) data set was collected from a test by the English language Institute
+	of the University of Michigan to examine individual cognitive skills required for understanding English language grammar \cite{templin2014hierarchical}.
+	It contains a sample of 2922 examinees who is tested by 28 items on 3 skills, i.e., \emph{morphosyntactic rules} ($S_1$), \emph{cohesive rules} ($S_2$) 
+	and \emph{lexical rules} ($S_3$). Each item requires either one or two of the three skills. 
+	The prerequisite structure output from BNPD are depicted in Figure~\ref{fig:ecpe-result}. The estimated conditional probability tables are showed correspondingly.
+	The discovered structure says \emph{lexical rules} is a prerequisite of \emph{cohesive rules} and \emph{morphosyntactic rules}, 
+	and \emph{cohesive rules} is a prerequisite of \emph{morphosyntactic rules}. 
+	This totally agrees with the findings in \cite{templin2014hierarchical} and by the PARM method in \cite{chen2015discovering}.
+	%Note that PARM discovered the three pairwise prerequisite relationships but BNPD output a full structure.
+	Further, BNPD also outputs the conditional probabilities associated with each skill and its direct prerequisite, 
+	which provides insights into how prerequisites impact the post-requisite probabilistically. 
 	
 			\begin{figure}[!th]
 				\begin{center}
 					\centering
 					\includegraphics[width=1.0\linewidth]{figures/ecpe_results.png}
 				\end{center}
-				\caption{Result on ECPE data set. $S_1$: Morphosyntactic rules; $S_2$: Cohesive rules; $S_3$: Lexical rules.}
+				\caption{Result on ECPE data set. $S_1$: Morphosyntactic rules; $S_2$: Cohesive rules; $S_3$: Lexical rules. 
+					The estimated conditional probability tables are shown correspondingly.}
 				\label{fig:ecpe-result} 
 			\end{figure}
 	
 	\subsubsection{HED Data Set}
 	We now evaluate BNPD using data collected from a commercial non-adaptive tutoring system.
-	We use data from anonymized students interacting with two implementations of a seventh grade math curriculum.
-	One implementation is used by conventional brick-and-mortar schools (we call it \texttt{traditional}),
-	and the other by cyber-charter schools (we call it \texttt{virtual}).
-	Both of our datasets systems use the same curriculum and textbook.
-	The textbook items are classified in chapters, sections, and objectives; but for this paper, we only use the data from the first three chapters.
-	In both systems, we use  performance data while students solve homework and test items.
-	We model the test and homework data using assessment models (\S~\ref{sec:assessment_results}) and learning methods~(\S~\ref{sec:learning_results}), respectively.
+	The data set, named as \texttt{HED}, is from anonymized students interacting with an implementation of a seventh grade math curriculum.
+	%This implementation is used by schools (we call it \texttt{traditional}),
+	The textbook items are classified in chapters, sections, and objectives; but for this paper, we only use the data from Chapter 2 and Chapter 3 of the book.
+	We use performance data while students solve test items.
+%	We model the test and homework data using assessment models (\S~\ref{sec:assessment_results}) and learning methods~(\S~\ref{sec:learning_results}), respectively.
 	%\texttt{traditional} is much larger data set than \texttt{virtual}.
 	%In our experiments, the performance results were converted to binary, i.e., correct or incorrect.
 	
@@ -725,20 +734,13 @@ Then, in \S~\ref{sec:real} we  use  data collected from real students.
 	%Provide descriptive statistics.
 	%Notice that my experiments I use the homework table.  Describe that there are homeworks \& Test
 	
-	\subsubsection{Assessment Experiments}
-	\label{sec:assessment_results}
-	We now evaluate how REMIND  discovers a remedial model in the assessment context using test data.
-	For this, \S~\ref{sec:preprocessing} describes  the data filtering  and the $Q$-matrix we use;
-	\S~\ref{sec:prerequisite_results} describes the prerequisite structure discovered by REMIND;
-	\S~\ref{sec:assessment_quantitative} describes a quantitative evaluation of the remediation model.
-	
 	\paragraph{$Q$-matrix and preprocessing}
 	\label{sec:preprocessing}
-	We use an item-to-skill mapping ($Q$-matrix) that assigns each exercise to a skill  solely as the book section in which the item appears.
-	This $Q$-matrix does not convey any information on how or when to offer a remedial intervention to a learner.
-	For this, we investigate the extent on which REMIND can discover a remediation model using student performance data.
-	We process both of our datasets to  find a subset of  items and students that does not have missing data.
-	This is,  the dataset we use in REMIND has  students  responding to \textit{all} of the  items.
+	We use an item-to-skill mapping ($Q$-matrix) that assigns each exercise to a skill solely as the book section in which the item appears.
+	%This $Q$-matrix does not convey any information on how or when to offer a remedial intervention to a learner.
+	%For this, we investigate the extent on which REMIND can discover a remediation model using student performance data.
+	We process the data set to find a subset of  items and students that does not have missing data.
+	This is,  the dataset we use in BNPD has students responding to \textit{all} of the  items.
 	
 	%Table~\ref{tab:seclistdata} lists the twelve skills (book sections) remaining after filtering.
 	After filtering, each skill (book section) has two to four items, for a total of  33  items.
