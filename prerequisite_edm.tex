@@ -568,11 +568,11 @@ Then, in \S~\ref{sec:real} we  use  data collected from real students.
 	We use these metrics to evaluate the effect of varying the  number of observations  of the training set (sample size) on the quality of learning the prerequisite structure.
 	We designed experiments to specifically answer the following four questions:
 	\begin{enumerate}[noitemsep,topsep=2pt,parsep=0pt,partopsep=0pt]
-		\item How does the type of items affect the method's ability to recover the prerequisite structure?
-		We consider the case where in the model each item requires only one skill and the case where each item requires multiple skills. 
-		\item How well does the algorithm perform when there is noise in the data?
+		\item How does the type of items affect BNPD's ability to recover the prerequisite structure?
+		We consider the case where in the model each item requires only one skill and the case where item require multiple skills. 
+		\item How well does BNPD perform when there is noise in the data?
 		We focus on studying noise due to the presence of unaccounted hidden variables.% other than skills in the data.
-		\item How well does the algorithm perform when the student performance data has missing values?
+		\item How well does BNPD perform when the student performance data has missing values?
 		\item How well does BNPD compare with other prerequisite discovery methods?
 		Here we compare BNPD to the Probabilistic Association Rules Mining (PARM) method \cite{chen2015discovering}.
 	\end{enumerate}
@@ -581,7 +581,7 @@ Then, in \S~\ref{sec:real} we  use  data collected from real students.
 
 	\subsubsection{Single-skill vs Multi-skill Items}
 	
-	We consider two conditions that have different types of $Q$-matrix. In the first type of $Q$-matrix,
+	We consider two conditions where different types of $Q$-matrix are used. In the first one,
 	each item node maps to only one skill node. In the second one, each item loads 1-3 skills. 
 	Figure~\ref{fig:f1-single-multi} compares the $F_1$ of adjacency discovery and edge orientation result under two types of $Q$-matrix.
 	We observe that the accuracy for both the adjacency and the edge orientation  improves with the amount of data.
@@ -608,11 +608,12 @@ Then, in \S~\ref{sec:real} we  use  data collected from real students.
 	
 	%\hl{Hard to read}
 	Real-world data sets often contain various types of noise.
-	For example,  noise may occur due to   hidden variables that are not explicitly modeled. 
+	For example,  noise may occur due to hidden variables that are not explicitly modeled. 
 	%For example, students' performances in a test also depends on their individual ability (in addition to their mastery status of the required skills). 
 	%This will create noises in the data if we don't directly model the student's ability.
 	To evaluate the sensitivity of REMIND to noise, we synthesize Bayesian networks including a  \emph{StudentAbility} node that takes three possible states (low/med/high). 
-	In these Bayesian networks, students' performance depends not only on whether they have mastered the skill, but also on their individual ability. % (in addition to their mastery status of the required skills). 
+	In these Bayesian networks, students' performance depends not only on whether they have mastered the skill, but also on their individual ability. % (in addition to their mastery status of the required skills).
+	For simplicity, all items in the setting are single-skilled items. 
 	We first simulated data from  Bayesian networks that have a  \emph{StudentAbility} variable to generate ``noisy" data samples, and 
 	%There is an arc from \emph{StudentAbility} to each item variable in these data generating models. 
 	then use this data to recover the prerequisite structure. % from these truncated data samples. 
@@ -621,6 +622,7 @@ Then, in \S~\ref{sec:real} we  use  data collected from real students.
 	Figure~\ref{fig:f1-noisy} compare the results were noise was introduced or not.
 	Interestingly, the noise does not harm the learning accuracy at all, and actually improves the accuracy.
 	We hypothesize that the existence of additional hidden variable increases the variance of the data which can help the structure learning.
+	%remove noise by separating students by ability
 	%\hl{Can you show the ``true" Bayes net (i.e, with student ability node) and the one we are trying to learn?}
 	
 	\begin{figure}[!ht]
@@ -631,7 +633,7 @@ Then, in \S~\ref{sec:real} we  use  data collected from real students.
 		\label{fig:stuabilitymodel}
 	\end{figure}
 	
-	\begin{figure}%[th]
+	\begin{figure}[!ht]
 		\begin{center}
 			\centering
 			\begin{tabular}{>{\centering}m{1.5in} >{\centering\arraybackslash}m{1.5in}}
@@ -644,37 +646,64 @@ Then, in \S~\ref{sec:real} we  use  data collected from real students.
 		\label{fig:f1-noisy} 
 	\end{figure}
 	
+			\begin{figure}[!ht]
+				\begin{center}
+					\centering
+					\begin{tabular}{>{\centering}m{1.5in} >{\centering\arraybackslash}m{1.5in}}
+						\includegraphics[width=1.1\linewidth]{figures/F1A_single_missing.eps} &\includegraphics[width=1.1\linewidth]{figures/F1O_single_missing.eps}\\
+					\end{tabular}
+				\end{center}
+				\caption{Results of learning with missing data. Left: Comparison of $F_1$ scores for adjacency discovery. Horizontal lines are baseline $F_1$ scores computed for fully connected Bayesian networks. Right: Comparison of $F_1$ scores for edge orientation. }
+				\label{fig:f1-missing} 
+			\end{figure} 
+	
 	\subsubsection{In Presence of Missing Values}
 	%Real-world student performance data often has missing data, i.e., some students do not respond to all test items. Structural EM can also be applied with the missing data. 
 	%The general idea is, in the E-step, in addition to completing the values for hidden skill variables, the algorithm has to complete the missing data points.
-	To evaluate how BNPD performs on data with missing values, we generated data sets of size 1000 with varying fraction of missing values ($10\%$, $20\%$, $30\%$, $40\%$, $50\%$) and ran BNPD to recover the structures from these data sets. The results are presented in Figure~\ref{fig:f1-missing}.
+	To evaluate how BNPD performs on data with missing values, we generated data sets of size 1000 with varying fraction of missing values ($10\%$, $20\%$, $30\%$, $40\%$, $50\%$) and ran BNPD to recover the structures from these data sets. Again, the models only contains single-skilled items.  The results are presented in Figure~\ref{fig:f1-missing}.
+	It is clearly seen that the accuracy decreases when the fraction of missing values increases. 
+	The algorithm is still able to recover the true structures of Structure 1 and 2 even the data contains up to $30\%$ missing values. 
 	
+	\subsubsection{Comparison With PARM}
+	Chen and his colleagues proposed to use Probabilistic Association Rules Mining (PARM) for discovering the prerequisite relationships between skills \cite{chen2015discovering}.
+	Since PARM only discovers pair-wise prerequisite relationship, instead of constructing the full structure,
+	we only compare BNPD with PARM for discovering the pair-wise relationships.
+	That is, we derived pair-wise prerequisite relationships from the Bayesian network structure and see how the two approaches discover these relationships.
+	Here we simulated data from Structure 3 (Figure~\ref{fig:syn-nets}(c)) with single-skilled items, which has 21 pair-wise prerequisite relationships.
+	When experimenting iwth PARM, the following cutoff values were used: $ minsup=0.125$, $minconf=0.76$, $minprob=0.9$. 
+	These values were also used in the simulation experiments in \cite{chen2015discovering}.
+	The evaluation metric used is $F_1=\frac{2*TPR*TDR}{TPR+TDR}$, where $TPR=\frac{\text{\# of correct relationships learned}}{\text{\# of relationships in true model}}$
+	and $TDR=\frac{\text{\# of correct relationships learned}}{\text{\# of relationships in learned model}}$.
+	The result is presented in Figure~\ref{fig:f1-parm}. It shows that BNPD significantly outperforms PARM for sample size $n\ge 500$.
+	The lower $F_1$ score by PARM is caused by lower $TPR$, i.e., PARM failed to discover many prerequisite relationships (data not shown).
 	
-		\begin{figure}[!ht]
-			\begin{center}
-				\centering
-				\begin{tabular}{>{\centering}m{1.5in} >{\centering\arraybackslash}m{1.5in}}
-					\includegraphics[width=1.1\linewidth]{figures/F1A_single_missing.eps} &\includegraphics[width=1.1\linewidth]{figures/F1O_single_missing.eps}\\
-				\end{tabular}
-			\end{center}
-			\caption{Results of learning with missing data. Left: Comparison of $F_1$ scores for adjacency discovery. Horizontal lines are baseline $F_1$ scores computed for fully connected Bayesian networks. Right: Comparison of $F_1$ scores for edge orientation. }
-			\label{fig:f1-missing} 
-		\end{figure}  
-
-	
-	\subsubsection{Comparison With PARM Method}
 		\begin{figure}[!th]
 			\begin{center}
 				\centering
 					\includegraphics[width=0.8\linewidth]{figures/F1_parm.eps}
 			\end{center}
-			\caption{Comparison of BNPD and PARM for discovering prerequisite relationships.}
+			\caption{Comparison of BNPD and PARM for discovering prerequisite relationships in Structure 3. The cutoff values used for PARM experiments are: $ minsup=0.125$, $minconf=0.76$, $minprob=0.9$.}
 			\label{fig:f1-parm} 
 		\end{figure}	 
 	
 	\subsection{Real Student Performance Data}
 	\label{sec:real}
-	We now evaluate REMIND using data collected from a commercial non-adaptive tutoring system.
+	We now evaluate BNPD using two real-world student data sets.
+	
+	\subsubsection{ECPE Data Set}
+	The ECPE (Examination for the Certification of Proficiency in English).
+	
+			\begin{figure}[!th]
+				\begin{center}
+					\centering
+					\includegraphics[width=1.0\linewidth]{figures/ecpe_results.png}
+				\end{center}
+				\caption{Result on ECPE data set. $S_1$: Morphosyntactic rules; $S_2$: Cohesive rules; $S_3$: Lexical rules.}
+				\label{fig:ecpe-result} 
+			\end{figure}
+	
+	\subsubsection{HED Data Set}
+	We now evaluate BNPD using data collected from a commercial non-adaptive tutoring system.
 	We use data from anonymized students interacting with two implementations of a seventh grade math curriculum.
 	One implementation is used by conventional brick-and-mortar schools (we call it \texttt{traditional}),
 	and the other by cyber-charter schools (we call it \texttt{virtual}).
