@@ -268,7 +268,7 @@ Modeling prerequisites as edges in a Bayesian network allows us to frame the dis
 \end{figure} 
 
 
-Algorithm~\ref{alg:remind} describes the BNPD pipeline.
+Algorithm~\ref{alg:bnpd} describes the BNPD pipeline.
 Suppose we collect data from  $n$ students, answering $p$ items.
 Then, the input of BNPD is a matrix $\mathbf{D}$ with $n \times p$ dimensions, an item to skill mapping.%, and (optionally) some constraints on what content can trigger a remediation.
 Each entry in $\mathbf{D}$ encodes the performance of a student (see Table~\ref{tbl:d-matrix} for an example).
@@ -335,8 +335,8 @@ We now describe the  steps of BNPD in detail.
 	\end{algorithmic}
 	\AddNote{inittop}{initbot}{right}{\footnotesize Initialization}
 	\AddNote{semtop}{sembot}{right}{\footnotesize Structural EM}
-	\AddNote{lsmtop}{lsmbot}{right}{\footnotesize Refine models}
-	\caption{The BNPD algorithm\label{alg:remind}}
+	\AddNote{lsmtop}{lsmbot}{right}{\footnotesize Orient edges}
+	\caption{The BNPD algorithm\label{alg:bnpd}}
 \end{algorithm}
 \footnotetext{$P(S_i=a|S_j=b)$ can be computed using any Bayesian network inference algorithm such as Junction tree algorithm\cite{koller2009probabilistic}}
 
@@ -367,7 +367,7 @@ The Structural Expectation Maximization algorithm \cite{friedman1997learning,fri
 %We now summarize how it works.
 
 Structural EM is an iterative algorithm that  inputs a matrix $\mathbf{D}$ of student performance (see example Table~\ref{tbl:d-matrix}). %, where columns are the set of exercise items $\mathbf{I}$ and each row contains a student's performances on all these exercise items.
-Figure~\ref{fig:sem} illustrates one iteration of the Structural EM algorithm. The relevant steps are also sketched in Algorithm~\ref{alg:remind}. 
+Figure~\ref{fig:sem} illustrates one iteration of the Structural EM algorithm. The relevant steps are also sketched in Algorithm~\ref{alg:bnpd}. 
 Each iteration consists of an Expectation step (\emph{E-step}) and a Maximization step (\emph{M-step}). 
 %Structural EM calculates in each iteration a candidate model structure $G$ be by iterating over the Expectation and Maximization steps.
 In \emph{E-step}, we first find the maximum likelihood estimate $\theta^*$ of the parameters 
@@ -399,43 +399,42 @@ In  the \emph{M-step} of our Structural EM implementation we only consider the c
 
 An advantage of using Structural EM to discover the prerequisite relationship of skills, is that it is easily extensible to incorporate domain knowledge.
 For example, we can  place constraints on the output structure to force or to disallow a skill to be a prerequisite from another other skill.
-%For example, we can specify an (partial) ordering of the skills, which places constraints on the output structure, such that the skills appearing after a skill $S_i$ in the ordering can not be the prerequisites (ancestors) of $S_i$. 
-%Similarly, in the \emph{M-step} of the Structural EM algorithm, we can modify the algorithm to comply with the constraints.
-%In such way, we can combine the knowledge from experts and the data to build better prerequisite graphs. 
 Consider,  an intelligent tutor that teaches the content of a book. 
-The book content structure provides a natural ordering of the chapters. %, can be used to guide our search for the prerequisite relationship among relevant skills.
-%Domain knowledge can help so we do not allow a remediation intervention from a chapter of an introductory chapter to be selected from later content.
-We may use the book structure to engineer domain knowledge that  an  introductory chapter cannot be prerequisite of content that appears later in the book.
+The book content structure provides a natural ordering of the chapters. 
+We may use the book structure to engineer domain knowledge that an introductory chapter cannot be prerequisite of content that appears later in the book.
+
+Another advantage of Structural EM is that it can be applied when there are missing data in the student performance matrix $\mathbf{D}$. 
+That is, some students do not answer all the items thus some responses are missing. This ``missing values" problem is very common in real-world situations.
+Structural EM can be applied to this type of data since it was originally developed to solve the "missing values" problem \cite{friedman1997learning}.
+The general idea is, in the \emph{E-step}, the algorithm also computes the expected values for missing data points, in addition for hidden variables, . 
 
 \subsection{Discriminate Between Equivalent BNs}
 
 Structural EM selects Bayesian network model based on how well it explains the distribution of the data. 
-Bayesian network theory states that some Bayesian networks are statistically equivalent and thus not distinguishable by the scoring function.
-Thus, the output from Structure EM is an equivalence class that may contain many Bayesian network structures. 
+Bayesian network theory states that some Bayesian networks are statistically equivalent in representing the data.
+Thus, the output from Structure EM is an equivalence class that may contain many Bayesian network structures.
 These equivalent Bayesian networks have the same skeleton and the same $v$-structures\footnote{
-A $v$-structure in a Bayesian network $G$ is an ordered triple of nodes $(u,v,w)$ such that $G$ contains the directed edges $u\rightarrow v$ and $w\rightarrow v$ and $u$ and $w$ are not adjacent in $G$. \cite{verma1990equivalence}.}, and can be represented with a complete partially DAG (CPDAG) which consist of a directed edge for every irreversible edge and an undirected edge for every reversible edge\footnote{A CPDAG is also called a \emph{pattern}.}. 
-We can discriminate between these equivalent Bayesian networks based the following observation.
+A $v$-structure in a Bayesian network $G$ is an ordered triple of nodes $(u,v,w)$ such that $G$ contains the directed edges $u\rightarrow v$ and $w\rightarrow v$ and $u$ and $w$ are not adjacent in $G$. \cite{verma1990equivalence}.}. 
+For instance, Figure~\ref{fig:equivnets} gives an example of two simple Bayesian networks that are not distinguishable by Structural EM algorithm.
+They share the skeleton but differ in the orientation of the edge. They apparently represent two different prerequisite structures.
+To determine which structure is the case, we shall determine the orientation of each reversible edge.
+For this purpose, we can use the following domain knowledge.
 
-\textbf{Rule 1}. $S_1$ is a prerequisite of $S_2$, i.e., $S_1\rightarrow S_2$, if and only if $P(S_1=1|S_2=1)= 1$ and $P(S_2=0|S_1=0)= 1$.
+\textbf{Knowledge 1}. If $S_1$ is a prerequisite of $S_2$, i.e., $S_1\rightarrow S_2$, then $P(S_1=1|S_2=1)= 1$ and $P(S_2=0|S_1=0)= 1$.
 
-\textbf{Rule 1} says if a skill $S_1$ is the prerequisite of a skill $S_2$,
+\textbf{Knowledge 1} says if a skill $S_1$ is the prerequisite of a skill $S_2$,
 a student must master skill $S_1$ before he masters $S_2$ and it is impossible for him to master $S_2$ if he has not mastered $S_1$.
-This puts additional constraints on the estimated joint distribution.  
-However, in real situations, it is possible for a student to know the post-requisite even he does not know the prerequisite. 
-Further, there are always noises in the data. Thus, the two conditional probabilities $P(S_1=1|S_2=1)$ and $P(S_2=0|S_1=0)$ are not exactly but close to 1.
-Since equivalent Bayesian networks agree on the skeleton but differ in the orientation of some edges, determining a single Bayesian network structure
-is equivalent to determining the orientation of the reversible edges.
-
-
-%\begin{figure}[!ht]
-%	\begin{center}
-%		%\framebox[4.0in]{$\;$}
-%		%\fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
-%		\includegraphics[width=0.8\linewidth]{figures/orientedgeexample.png}
-%	\end{center}
-%	\caption{\small An illustration of the Structure EM algorithm to discover the structure of the latent variables.}
-%	\label{fig:orientededgeexample} 
-%\end{figure}
+In other words, $S_1$ is not a prerequisite of $S_2$ if at least one of the conditions does not hold.
+This puts a constraint on the joint distribution encoded by the Bayesian network to be learned.
+We can check for each reversible edge $S_i-S_j$ in the Bayesian network, either $P(S_i=1|S_j=1)= 1$ and $P(S_j=0|S_i=0)= 1$, or $P(S_j=1|S_i=1)= 1$ and $P(S_j=0|S_i=0)= 1$. 
+If the former holds, $S_i\rightarrow S_j$; otherwise, $S_i\leftarrow S_j$.  
+However, in real situations, it is possible for a student to master the post-requisite even he does not know the prerequisite. 
+Further, there is always noise in the data. Thus, the two conditional probabilities $P(S_1=1|S_2=1)$ and $P(S_2=0|S_1=0)$ are not exactly but close to 1.
+Instead, we use the following empirical rule: if $P(S_1=1|S_2=1)\cdot P(S_2=0|S_1=0)>P(S_2=1|S_1=1)\cdot P(S_1=0|S_2=0)$, we determine $S_1\rightarrow S_2$; 
+otherwise, we determine $S_1\leftarrow S_2$. 
+The intuition behind this is two probabilities $P(S_1=1|S_2=1)$ and $P(S_2=0|S_1=0)$ are certificate of the prerequisite structure $S_1\rightarrow S_2$.
+The larger of these two probabilities, the more likely the relationship $S_1\rightarrow S_2$ holds.
+Since here we are concerned with which direction the edge goes, we simply compare the products of two probabilities and select the direction that is more probable. 
 
 	\begin{figure}[!ht]\small
 		\centering
@@ -443,21 +442,31 @@ is equivalent to determining the orientation of the reversible edges.
 			\centering
 			\includegraphics[width=0.5\linewidth]{figures/s1s2.png}
 			\caption{\label{fig:equivnet1}}
-			$P(S_1=1|S_2=1)=0.86$ \\ $P(S_2=0|S_1=0)=0.92$
+			%$P(S_1=1|S_2=1)=0.86$ \\ $P(S_2=0|S_1=0)=0.92$
 		\end{subfigure}
 		\begin{subfigure}[t]{0.45\linewidth}
 			\centering
 			\includegraphics[width=0.5\linewidth]{figures/s2s1.png}
 			\caption{\label{fig:equivnet2}}
-			$P(S_2=1|S_1=1)=0.52$ \\ $P(S_1=0|S_2=0)=0.64$
+			%$P(S_2=1|S_1=1)=0.52$ \\ $P(S_1=0|S_2=0)=0.64$
 		\end{subfigure}
-		\caption{Two equivalent Bayesian networks representing different prerequisite structures can be discriminated by conditional probability tables.\label{fig:equivnets} }
+		\caption{Two equivalent Bayesian networks representing different prerequisite structures.\label{fig:equivnets} }
 	\end{figure}
- 
+
+Using the empirical rule, we can orient every reversible edge in the network structure. 
+However, the determinations of edge's orientation are not independent and may conflict each other.
+Having oriented one edge would constrain the orientation of other reversible edges since we have to ensure the graph is a DAG and in the same equivalence class.
+Thus, for each reversible edge $S_i-S_j$, we compute $ratio=\frac{P(S_i=1|S_j=1)\cdot P(S_j=0|S_i=0)}{P(S_j=1|S_i=1)\cdot P(S_i=0|S_j=0)}$ 
+and $ratio*=ratio$ if $ratio >1$, $ratio*=\frac{1}{ratio}$ otherwise. The larger the $ratio*$ is, the more confidently we decide the orientation.
+We sort the list of reversible edges by $ratio*$ in descending order. We then orient the edges in this order.
+When one edge is oriented, the constraint propagates. In the implementation, we take a different strategy: 
+we first enumerate all equivalent Bayesian networks and make them a list of candidates; 
+when an edge is oriented to $S_i\rightarrow S_j$, we remove all contradicting Bayesian networks from the list.
+Eventually only one Bayesian network structure stands. This procedure is detailed in the \emph{Orient edges} section of Algorithm~\ref{alg:bnpd}  
 
 \section{Evaluation}
-In \S~{\ref{sec:synthetic}, we  evaluate REMIND with simulated data  to assess the quality of the discovered prerequisite structures.
-	Then, in \S~\ref{sec:real} we  use  data collected from real students.
+In \S~{\ref{sec:synthetic}, we  evaluate BNPD with simulated data  to assess the quality of the discovered prerequisite structures.
+Then, in \S~\ref{sec:real} we  use  data collected from real students.
 	
 	
 	\subsection{Simulated Data}
@@ -467,12 +476,12 @@ In \S~{\ref{sec:synthetic}, we  evaluate REMIND with simulated data  to assess t
 	%various factors, including sample size, number of skill or item variables, prior knowledge, noises in the data, 
 	%affect the learning performance.
 	
-	Synthetic data allows us to study how REMIND compares to ground truth.
+	Synthetic data allows us to study how BNPD compares to ground truth.
 	For this, we engineered three prerequisite structures (DAGs), shown in Figure~\ref{fig:syn-nets}.
 	Here, each figure represents different causal relations between the simulated latent skill variables.
 	%Note that some edges are reversible and represented as undirected edges. 
-	Given observational data, the direction of some edges cannot be determined because the edges are \emph{reversible}%
-	We represent these edges as undirected lines.
+	%Given observational data, the direction of some edges cannot be determined because the edges are \emph{reversible}%
+	%We represent these edges as undirected lines.
 	
 	\begin{figure}[!ht]
 		%\begin{center}
@@ -495,7 +504,7 @@ In \S~{\ref{sec:synthetic}, we  evaluate REMIND with simulated data  to assess t
 	\end{figure} 
 	
 	For clarity, Figure~\ref{fig:syn-nets}  omits the item nodes;
-	but each skill node is parent of six item variables.
+	but each skill node is parent of six item variables and each item variable has 1-3 skill nodes as parents.
 	All of these nodes are modeled using binary random variables.
 	More precisely, the latent  nodes represent whether the student  achieves mastery of the skill,
 	and the observed nodes indicate if the student answers the item correctly.
@@ -511,14 +520,14 @@ In \S~{\ref{sec:synthetic}, we  evaluate REMIND with simulated data  to assess t
 	Thus, in total we generated 120 synthetic datasets (3 DAGs x 4 sample sizes x 10 CPTs), and  report the average results.
 	
 	
-	We evaluate how REMIND can discover the true prerequisite structure using metrics designed to evaluate Bayesian networks structure discovery.
+	We evaluate how BNPD can discover the true prerequisite structure using metrics designed to evaluate Bayesian networks structure discovery.
 	In particular, we use the $F_1$ \emph{adjacency score} and the $F_1$ \emph{orientation score}.
 	The adjacency score measure how well we can recover connections between nodes.
 	It is a weighted average of the true positive adjacency rate and the true discovery adjacency rate.
 	On the other hand, the orientation score measures how well we can recover the direction of the edges.
 	%To measure the accuracy of edge orientation, we compute the $F_1$ \emph{orientation score}, 
 	It is calculated as a weighted average of the true positive orientation rate and true discovery orientation rate.
-	This metric does not account for the directionality incorrect edges that are reversible.
+	%This metric does not account for the directionality incorrect edges that are reversible.
 	In both cases, the $F_1$ score reaches its best value at 1 and worst at 0. 
 	Moreover, for comparison, we compute the $F_1$ \emph{adjacency score} for Bayesian network structures whose skill nodes are fully connected with each other. 
 	These fully connected DAGs will serve as baselines for evaluating the adjacency discovery.\footnote{We do not compute $F_1$ orientation score for fully connected DAGs because all edges in a fully connected DAG are reversible.}
@@ -557,31 +566,28 @@ In \S~{\ref{sec:synthetic}, we  evaluate REMIND with simulated data  to assess t
 	\end{table}
 	
 	We use these metrics to evaluate the effect of varying the  number of observations  of the training set (sample size) on the quality of learning the prerequisite structure.
-	We designed experiments to specifically answer the following two questions:
+	We designed experiments to specifically answer the following four questions:
 	\begin{enumerate}[noitemsep,topsep=2pt,parsep=0pt,partopsep=0pt]
-		\item How useful is the prior domain knowledge for improving the prerequisite structure discovery?
-		We are  interested in the case where prior knowledge on the node ordering is provided by experts.
+		\item How does the type of items affect the method's ability to recover the prerequisite structure?
+		We consider the case where in the model each item requires only one skill and the case where each item requires multiple skills. 
 		\item How well does the algorithm perform when there is noise in the data?
 		We focus on studying noise due to the presence of unaccounted hidden variables.% other than skills in the data.
+		\item How well does the algorithm perform when the student performance data has missing values?
+		\item How well does BNPD compare with other prerequisite discovery methods?
+		Here we compare BNPD to the Probabilistic Association Rules Mining (PARM) method \cite{chen2015discovering}.
 	\end{enumerate}
 	We now investigate these questions.
 
 
 	\subsubsection{Single-skill vs Multi-skill Items}
 	
-	%Each DAG is compatible with one or several topological orderings. 
-	%If the orderings the truth DAG is compatible with is known,
-	%it can be used to guide the Structural EM in finding the correct model.
-	Figure~\ref{fig:f1-adj-ori} compares the $F_1$ of adjacency discovery and edge orientation result of two conditions. 
-	In the \textit{without ordering} condition, we learn a  Bayesian network  only using  data.
-	In the \textit{with ordering} condition, we provide the node ordering of the true Bayesian network as constraints.
-	The  purpose of  this condition is to simulate the effect of a subject matter expert that provides  useful constraints.
-	
-	%The comparisons of with and without ordering constraint are shown in Figure~\ref{fig:f1-adj-ori} .
+	We consider two conditions that have different types of $Q$-matrix. In the first type of $Q$-matrix,
+	each item node maps to only one skill node. In the second one, each item loads 1-3 skills. 
+	Figure~\ref{fig:f1-single-multi} compares the $F_1$ of adjacency discovery and edge orientation result under two types of $Q$-matrix.
 	We observe that the accuracy for both the adjacency and the edge orientation  improves with the amount of data.
-	With just 2000 observations, the algorithm can  recover the true structures almost perfectly.
-	Additionally, using domain knowledge constraints significantly improves the edge orientation accuracy. 
-	In particular, it substantially reduces the \emph{FPOR} and \emph{FNOR} (Figure~\ref{fig:fpor-fnor}). 
+	With just 2000 observations, the algorithm can recover the true structures almost perfectly.
+	Additionally, when the model contains multiple-skill items, the accuracy is slightly lower than that when there are single-skill items in the model,
+	probably because there are more parameters to be estimated in the case of multi-skill items. 
 	
 	\begin{figure}[!ht]
 		\begin{center}
@@ -594,7 +600,7 @@ In \S~{\ref{sec:synthetic}, we  evaluate REMIND with simulated data  to assess t
 		%\vspace{-0.5em}
 		\caption{Comparison of $F_1$ scores for adjacency discovery (top row) and for edge orientation (bottom row). 
 			Horizontal lines are baseline $F_1$ scores computed for fully connected (complete) Bayesian networks.} 
-		\label{fig:f1-adj-ori}
+		\label{fig:f1-single-multi}
 		%\vspace{-1em}
 	\end{figure} 
 	
@@ -621,7 +627,7 @@ In \S~{\ref{sec:synthetic}, we  evaluate REMIND with simulated data  to assess t
 		\begin{center}
 			\includegraphics[width=1.0\linewidth]{figures/studentability.png}
 		\end{center}
-		\caption{Evaluation of REMIND with noisy data} 
+		\caption{Evaluation of BNPD with noisy data} 
 		\label{fig:stuabilitymodel}
 	\end{figure}
 	
@@ -638,17 +644,17 @@ In \S~{\ref{sec:synthetic}, we  evaluate REMIND with simulated data  to assess t
 		\label{fig:f1-noisy} 
 	\end{figure}
 	
-	\subsubsection{In Presence of Missing Data}
-	Real-world student performance data often has missing data, i.e., some students do not respond to all test items. Structural EM can also be applied with the missing data. 
-	The general idea is, in the E-step, in addition to completing the values for hidden skill variables, the algorithm has to complete the missing data points.
-	In this experiment, we generated data sets of size 1000 with varying fraction of missing data ($10\%$, $20\%$, $30\%$, $40\%$, $50\%$).
-	We ran our algorithm to recover the BNs. The results are presented in .
+	\subsubsection{In Presence of Missing Values}
+	%Real-world student performance data often has missing data, i.e., some students do not respond to all test items. Structural EM can also be applied with the missing data. 
+	%The general idea is, in the E-step, in addition to completing the values for hidden skill variables, the algorithm has to complete the missing data points.
+	To evaluate how BNPD performs on data with missing values, we generated data sets of size 1000 with varying fraction of missing values ($10\%$, $20\%$, $30\%$, $40\%$, $50\%$) and ran BNPD to recover the structures from these data sets. The results are presented in Figure~\ref{fig:f1-missing}.
 	
-		\begin{figure}%[th]
+	
+		\begin{figure}[!ht]
 			\begin{center}
 				\centering
 				\begin{tabular}{>{\centering}m{1.5in} >{\centering\arraybackslash}m{1.5in}}
-					\includegraphics[width=1.2\linewidth]{figures/F1A_single_missing.eps} &\includegraphics[width=1.2\linewidth]{figures/F1O_single_missing.eps}\\
+					\includegraphics[width=1.1\linewidth]{figures/F1A_single_missing.eps} &\includegraphics[width=1.1\linewidth]{figures/F1O_single_missing.eps}\\
 				\end{tabular}
 			\end{center}
 			\caption{Results of learning with missing data. Left: Comparison of $F_1$ scores for adjacency discovery. Horizontal lines are baseline $F_1$ scores computed for fully connected Bayesian networks. Right: Comparison of $F_1$ scores for edge orientation. }
