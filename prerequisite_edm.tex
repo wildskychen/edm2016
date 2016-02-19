@@ -455,7 +455,7 @@ Since here we are concerned with which direction the edge goes, we simply compar
 
 Using the empirical rule, we can orient every reversible edge in the network structure. 
 However, the determinations of all edges' orientations are not independent and may conflict each other.
-Having oriented one edge would constrain the orientation of other reversible edges because we have to ensure the graph is a DAG and in the same equivalence class.
+Having oriented one edge would constrain the orientation of other reversible edges because we have to ensure the graph is a DAG and the equivalence is not violated.
 Thus, for each reversible edge $S_i-S_j$, we compute $ratio=\frac{P(S_i=1|S_j=1)\cdot P(S_j=0|S_i=0)}{P(S_j=1|S_i=1)\cdot P(S_i=0|S_j=0)}$,
 then  $ratio^*=ratio$ if $ratio >1$ and $ratio^*=\frac{1}{ratio}$ otherwise. The larger the $ratio^*$ is, the more confidently when we decide the orientation.
 We sort the list of reversible edges by $ratio^*$ in descending order. We then orient the edges in this order.
