@@ -415,8 +415,8 @@ Bayesian network theory states that some Bayesian networks are statistically equ
 Thus, the output from Structure EM is an equivalence class that may contain many Bayesian network structures.
 These equivalent Bayesian networks have the same skeleton and the same $v$-structures\footnote{
 A $v$-structure in a Bayesian network $G$ is an ordered triple of nodes $(u,v,w)$ such that $G$ contains the directed edges $u\rightarrow v$ and $w\rightarrow v$ and $u$ and $w$ are not adjacent in $G$. \cite{verma1990equivalence}.}. 
-For instance, Figure~\ref{fig:equivnets} gives an example of two simple Bayesian networks that are not distinguishable by Structural EM algorithm.
-They share the skeleton but differ in the orientation of the edge. They apparently represent two different prerequisite structures.
+For instance, Figure~\ref{fig:equivnets} gives an example of three simple Bayesian networks that are not distinguishable by Structural EM algorithm.
+They share the skeleton but differ in the orientation of the edge. They apparently represent three different prerequisite structures.
 To determine which structure is the case, we shall determine the orientation of each reversible edge.
 For this purpose, we can use the following domain knowledge.
 
@@ -438,31 +438,40 @@ Since here we are concerned with which direction the edge goes, we simply compar
 
 	\begin{figure}[!ht]\small
 		\centering
-		\begin{subfigure}[t]{0.45\linewidth}
+		\begin{subfigure}[t]{0.32\linewidth}
 			\centering
-			\includegraphics[width=0.5\linewidth]{figures/s1s2.png}
+			\includegraphics[width=0.9\linewidth]{figures/s1s2s3.png}
 			\caption{\label{fig:equivnet1}}
 			%$P(S_1=1|S_2=1)=0.86$ \\ $P(S_2=0|S_1=0)=0.92$
 		\end{subfigure}
-		\begin{subfigure}[t]{0.45\linewidth}
+		\begin{subfigure}[t]{0.32\linewidth}
 			\centering
-			\includegraphics[width=0.5\linewidth]{figures/s2s1.png}
+			\includegraphics[width=0.9\linewidth]{figures/s2s1s3.png}
 			\caption{\label{fig:equivnet2}}
 			%$P(S_2=1|S_1=1)=0.52$ \\ $P(S_1=0|S_2=0)=0.64$
 		\end{subfigure}
-		\caption{Two equivalent Bayesian networks representing different prerequisite structures.\label{fig:equivnets} }
+		\begin{subfigure}[t]{0.32\linewidth}
+			\centering
+			\includegraphics[width=0.9\linewidth]{figures/s3s2s1.png}
+			\caption{\label{fig:equivnet3}}
+			%$P(S_2=1|S_1=1)=0.52$ \\ $P(S_1=0|S_2=0)=0.64$
+		\end{subfigure}		
+		\caption{Three equivalent Bayesian networks representing different prerequisite structures.\label{fig:equivnets} }
 	\end{figure}
 
 Using the empirical rule, we can orient every reversible edge in the network structure. 
-However, the determinations of all edges' orientations are not independent and may conflict each other.
+However, determining orientations for all reversible edges are not independent and may conflict each other.
 Having oriented one edge would constrain the orientation of other reversible edges because we have to ensure the graph is a DAG and the equivalence is not violated.
-Thus, for each reversible edge $S_i-S_j$, we compute $ratio=\frac{P(S_i=1|S_j=1)\cdot P(S_j=0|S_i=0)}{P(S_j=1|S_i=1)\cdot P(S_i=0|S_j=0)}$,
+For example, in Figure~\ref{fig:equivnet1}, if we have determined $S_1\rightarrow S_2$, the edge $S_2\rightarrow S_3$ is enforced.
+In this paper, we take an ad-hoc strategy to determine the orientation for all reversible edges. 
+For each reversible edge $S_i-S_j$, we compute $ratio=\frac{P(S_i=1|S_j=1)\cdot P(S_j=0|S_i=0)}{P(S_j=1|S_i=1)\cdot P(S_i=0|S_j=0)}$,
 then  $ratio^*=ratio$ if $ratio >1$ and $ratio^*=\frac{1}{ratio}$ otherwise. The larger the $ratio^*$ is, the more confidently when we decide the orientation.
 We sort the list of reversible edges by $ratio^*$ in descending order. We then orient the edges in this order.
 When one edge is oriented, the constraint is propagated to other reversible edges. In practical implementation, we take a different strategy: 
 we first enumerate all equivalent Bayesian networks and make them a list of candidates; 
 when an edge is oriented to $S_i\rightarrow S_j$, we remove all contradicting Bayesian networks from the list.
-Eventually only one Bayesian network structure stands. This procedure is also detailed in the \emph{Orient edges} section of Algorithm~\ref{alg:bnpd}  
+Eventually only one Bayesian network structure stands. This procedure is also detailed in the \emph{Orient edges} section of Algorithm~\ref{alg:bnpd}.  
+The $EnumEquivalentDAGs(G_i)$ implements the algorithm of enumerating equivalent DAGs proposed in \cite{chen2014finding}.
 
 \section{Evaluation}
 In \S~{\ref{sec:synthetic}, we  evaluate BNPD with simulated data  to assess the quality of the discovered prerequisite structures.
@@ -671,7 +680,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	we only compare BNPD with PARM for discovering the pair-wise relationships.
 	That is, we derived pair-wise prerequisite relationships from the Bayesian network structure and see how the two approaches discover these relationships.
 	Here we simulated data from Structure 3 (Figure~\ref{fig:syn-nets}(c)) (with single-skilled items), which has 21 pair-wise prerequisite relationships.
-	When experimenting iwth PARM, the following cutoff values were used: $ minsup=0.125$, $minconf=0.76$, $minprob=0.9$. 
+	When experimenting with PARM, the following cutoff values were used: $ minsup=0.125$, $minconf=0.76$, $minprob=0.9$. 
 	These values have been used in the simulation experiments in \cite{chen2015discovering}.
 	The evaluation metric used is $F_1=\frac{2*TPR*TDR}{TPR+TDR}$, where $TPR=\frac{\text{\# of correct relationships learned}}{\text{\# of relationships in true model}}$
 	and $TDR=\frac{\text{\# of correct relationships learned}}{\text{\# of relationships in learned model}}$.
@@ -759,14 +768,32 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	\paragraph{Prerequisite Structure Discovery}
 	\label{sec:prerequisite_results}
 	
-			\begin{figure*}[!th]
-				\begin{center}
-					\centering
-					\includegraphics[width=1.0\linewidth]{figures/hed_structures.png}
-				\end{center}
-				\caption{Prerequisite structures constructed by BNPD.}
-				\label{fig:hed-structures} 
-			\end{figure*}
+%			\begin{figure*}[!th]
+%				\begin{center}
+%					\centering
+%					\includegraphics[width=1.0\linewidth]{figures/hed_structures.png}
+%				\end{center}
+%				\caption{Prerequisite structures constructed by BNPD.}
+%				\label{fig:hed-structures} 
+%			\end{figure*}
+
+	\begin{figure*}%[ht]
+		\centering
+		\begin{subfigure}[b]{0.45\linewidth}
+			\centering
+			\includegraphics[width=1.0\linewidth]{figures/hed_chap2_structure_prob.png}
+			\caption{Prerequisite structure learned for \texttt{HED-chap2}.}
+			\label{fig:hed_chap2_structure}
+		\end{subfigure}~~~~
+		\begin{subfigure}[b]{0.45\linewidth}
+			\centering
+			\includegraphics[width=1.0\linewidth]{figures/hed_chap3_structure_prob.png}
+			\caption{Prerequisite structure learned for \texttt{HED-chap3}.}
+			\label{fig:hed_chap3_structure}
+		\end{subfigure}%
+		\caption{Prerequisite structures constructed by BNPD for HED data sets.}
+		\label{fig:hed-structures} 
+	\end{figure*}			
 	
 	The Bayesian networks generated with the BNPD algorithm are illustrated in Figure~\ref{fig:hed-structures}.
 	%Figure~\ref{fig:qmatrix} represents a disconnected model generated by simply converting the input $Q$-matrix into a Bayesian network;
@@ -776,9 +803,9 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	%Note that some edges are undirected indicating these directionalities of these edges can not determined given the observational data.
 	%Our observation is that the structures learned are not random, sections (skills) in the same chapter tend to form clusters, 
 	%even in the structure learned without the ordering constraint.
-	%Further, the inferred prerequisite structure are intuitively plausible, 
-	%as the topological order of the sections are roughly consistent with the book structure, even in the structure learned without the ordering constraint\todo{are you sure?}.
-	
+	The inferred prerequisite structures are intuitively plausible, 
+	as the topological order of the sections are consistent with the book structure, which reflects subject matter experts's belief on the prerequisite relationships 
+	between the sections of each book chapter.
 
 %	Our approach also outputs the conditional probabilities associated with each skill and its direct prerequisites.
 %	Figure~\ref{fig:chap123noorderCPT} plots the conditional distribution table for each skill.
@@ -793,8 +820,8 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	\paragraph{Predictive Performance of Learned Prerequisite Models}
 	\label{sec:predictive_performance}
 	
-	We now evaluate  REMIND using data  that has already been collected (\textit{post-hoc} analysis). %an evaluation of the REMIND algorithm using  . 
-	We evaluate how well the discovered Bayesian networks can predict  student performance on a 
+	%We now evaluate  REMIND using data  that has already been collected (\textit{post-hoc} analysis). %an evaluation of the REMIND algorithm using  . 
+	We now evaluate how well the discovered Bayesian networks can predict student performance
 	%student's knowledge about a skill given his/her performance on any of the test items. 
 	%Since student's knowledge about a skill is not directly observed, 
 	%we are unable to assess the predictive performance of these models involved in this task.
