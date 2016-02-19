@@ -354,7 +354,7 @@ With the created Bayesian network as an initial network, we learn the arcs betwe
 \subsection{Structural EM}
 
 A common solution to learning a Bayesian network from data is the score-and-search approach \cite{cooper1992bayesian,heckerman1997bayesian}.
-This approach uses a scoring function to measure the fitness of a Bayesian network structure to the observed data, 
+This approach uses a scoring function\footnote{A commonly used scoring function is Bayesian information criterion (BIC), which is composed of a likelihood term and a term to penalize the model complexity} to measure the fitness of a Bayesian network structure to the observed data, 
 and manages to find the optimal model in the space of all possible Bayesian network structures.
 However, the conventional score-and-search approaches rely on efficient computation of the scoring function, 
 which is only feasible for problems where data contains observations for all variables in the Bayesian network.
@@ -467,8 +467,9 @@ Eventually only one Bayesian network structure stands. This procedure is also de
 \section{Evaluation}
 In \S~{\ref{sec:synthetic}, we  evaluate BNPD with simulated data  to assess the quality of the discovered prerequisite structures.
 Then, in \S~\ref{sec:real} we  use  data collected from real students.
-	
-	
+In all our experiment, we use the Bayesian information criterion (BIC) as the scoring function in Structural EM . 
+%The BIC score for a Bayesian network model is composed of a likelihood term and a term to penalize the model complexity.
+
 	\subsection{Simulated Data}
 	\label{sec:synthetic}
 	%We first use synthetic data to demonstrate the capability of Structural EM in learning the prerequisite structure of latent skill variables.
@@ -695,13 +696,14 @@ Then, in \S~\ref{sec:real} we  use  data collected from real students.
 	of the University of Michigan to examine individual cognitive skills required for understanding English language grammar \cite{templin2014hierarchical}.
 	It contains a sample of 2922 examinees who is tested by 28 items on 3 skills, i.e., \emph{morphosyntactic rules} ($S_1$), \emph{cohesive rules} ($S_2$) 
 	and \emph{lexical rules} ($S_3$). Each item requires either one or two of the three skills. 
-	The prerequisite structure output from BNPD are depicted in Figure~\ref{fig:ecpe-result}. The estimated conditional probability tables are showed correspondingly.
+	The prerequisite structure output from BNPD are depicted in Figure~\ref{fig:ecpe-result}. The estimated conditional probability tables (CPT) are showed correspondingly.
 	The discovered structure says \emph{lexical rules} is a prerequisite of \emph{cohesive rules} and \emph{morphosyntactic rules}, 
 	and \emph{cohesive rules} is a prerequisite of \emph{morphosyntactic rules}. 
 	This totally agrees with the findings in \cite{templin2014hierarchical} and by the PARM method in \cite{chen2015discovering}.
 	%Note that PARM discovered the three pairwise prerequisite relationships but BNPD output a full structure.
-	Further, BNPD also outputs the conditional probabilities associated with each skill and its direct prerequisite, 
-	which provides insights into how prerequisites impact the post-requisite probabilistically. 
+	Further, BNPD also outputs the conditional probabilities associated with each skill and its direct prerequisite.
+%	which provides insights into how prerequisites impact the post-requisite probabilistically. 
+	And we clearly see that the probability of student mastering a skill increases when the student has acquired more prerequisites of the skill.
 	
 			\begin{figure}[!th]
 				\begin{center}
@@ -709,7 +711,7 @@ Then, in \S~\ref{sec:real} we  use  data collected from real students.
 					\includegraphics[width=1.0\linewidth]{figures/ecpe_results.png}
 				\end{center}
 				\caption{Result on ECPE data set. $S_1$: Morphosyntactic rules; $S_2$: Cohesive rules; $S_3$: Lexical rules. 
-					The estimated conditional probability tables are shown correspondingly.}
+					The estimated conditional probability tables (CPTs) are shown correspondingly.}
 				\label{fig:ecpe-result} 
 			\end{figure}
 	
@@ -739,93 +741,57 @@ Then, in \S~\ref{sec:real} we  use  data collected from real students.
 	We use an item-to-skill mapping ($Q$-matrix) that assigns each exercise to a skill solely as the book section in which the item appears.
 	%This $Q$-matrix does not convey any information on how or when to offer a remedial intervention to a learner.
 	%For this, we investigate the extent on which REMIND can discover a remediation model using student performance data.
-	We process the data set to find a subset of  items and students that does not have missing data.
+	For each chapter, We process the data set to find a subset of  items and students that does not have missing data.
 	This is,  the dataset we use in BNPD has students responding to \textit{all} of the  items.
 	
 	%Table~\ref{tab:seclistdata} lists the twelve skills (book sections) remaining after filtering.
-	After filtering, each skill (book section) has two to four items, for a total of  33  items.
-	The resulting dataset from the \texttt{traditional} implementation includes student test results for 5202 students; 
-	while the \texttt{virtual} implementation has the test results for 467 students.
-	Our synthetic data experiments suggest that a large number of training data improves the learning quality of the prerequisite structure.
-	For this reason, we use the larger \texttt{traditional} dataset to build the prerequisite model.
+	After filtering, we obtained two data sets, \texttt{HED-chap2} and \texttt{HED-chap3} for Chapter 2 and 3 respectively.  
+	In \texttt{HED-chap2}, six skills (book sections) are included and each skill has three to eight items, for a total of 30  items.
+	In \texttt{HED-chap3}, seven skills are included and each skill has three to seven items, for a total of 33 items.
+	\texttt{HED-chap2} includes student test results for 1720 students;
+	while the \texttt{HED-chap3} has the test results for 1245 students.
+	%Our synthetic data experiments suggest that a large number of training data improves the learning quality of the prerequisite structure.
+	%For this reason, we use the larger \texttt{traditional} dataset to build the prerequisite model.
 	
+	For simplicity we use binary variables to encode  performance data (i.e, correct or incorrect) and skill variables  (i.e., mastery or not mastery).
+	This simplification is not necessary,  as BNPD is able to use  discrete variables with arbitrary number of states.
 	
 	\paragraph{Prerequisite Structure Discovery}
 	\label{sec:prerequisite_results}
-	We now describe how we use the REMIND algorithm to learn a remedial model.
-	For simplicity we use binary variables to encode  performance data (i.e, correct or incorrect) and skill variables  (i.e., mastery or not mastery).
-	This simplification is not necessary,  as REMIND is able to use  discrete variables with arbitrary number of states.
-	We use an implementation of Structural EM available online called LibB\footnote{\url{http://compbio.cs.huji.ac.il/LibB/programs.html}}.
-	We experiment with two conditions:
-	\begin{itemize}[noitemsep,topsep=2pt,parsep=0pt,partopsep=0pt]
-		\item We use domain knowledge to constrain the prerequisite structure.
-		Since our skills correspond to the book sections, we use  the table of contents as expert knowledge.
-		We constraints skills so that a skill $a$ can be prerequisite of a skill $b$, iff $a$ appears before $b$ in the table of contents of the textbook.
-		%\todo{is this a fair description? i don't think you described what ``book order'' is before...} 
-		\item Alternatively, we also experiment using a fully data-driven approach in which REMIND learns the prerequisite structure without any constraints.
-	\end{itemize} 
 	
+			\begin{figure*}[!th]
+				\begin{center}
+					\centering
+					\includegraphics[width=1.0\linewidth]{figures/hed_structures.png}
+				\end{center}
+				\caption{Prerequisite structures constructed by BNPD.}
+				\label{fig:hed-structures} 
+			\end{figure*}
 	
-	\begin{figure*}[tbh]
-		\centering
-		\begin{subfigure}[t]{0.33\linewidth}
-			\centering
-			\includegraphics[height=2.5in]{figures/learned_dag_qmatrix.pdf}
-			\caption{$Q$-matrix represented as a Bayes network \label{fig:qmatrix}}
-		\end{subfigure}
-		\begin{subfigure}[t]{0.33\linewidth}
-			\centering
-			\includegraphics[height=2.5in]{figures/learned_dag_constraint.pdf}
-			\caption{Network constrained by domain knowledge \label{fig:constraint}}
-		\end{subfigure}
-		\begin{subfigure}[t]{0.33\linewidth}
-			\centering
-			\includegraphics[height=2.5in]{figures/learned_dag_noconstraint.pdf}
-			\caption{Network with no constraints \label{fig:noconstraint}}
-		\end{subfigure}
-		\caption{Prerequisite structures constructed by Structural EM. Nodes have been augmented with color information to emphasize the chapter association. Reversible edges are depicted as undirected. Squares represent the exercise items.\label{fig:prereqmodels} }
-	\end{figure*}
-	
-	\begin{figure}[!ht]
-		\begin{center}
-			\includegraphics[width=1.0\linewidth]{figures/chap123_noorder_cpt_1_line.png}~\\
-			\includegraphics[width=1.0\linewidth]{figures/chap123_noorder_cpt_2_line.png}~\\
-			\includegraphics[width=1.0\linewidth]{figures/chap123_noorder_cpt_3_line.png}
-		\end{center}
-		\caption{Visualization of the estimated conditional probability distributions for prerequisite structure model in Figure~\ref{fig:prereqmodels} (a). 
-			Each plot depicts the conditional probability of mastering a skill given the mastery status of its direct prerequisites.
-			Parents($\cdot$) specifies the direct prerequisites of the skill. 
-			In X-axis, 0 means the corresponding prerequisite is not mastered and 1 otherwise.} 
-		\label{fig:chap123noorderCPT}
-	\end{figure}
-	
-	
-	Figure~\ref{fig:prereqmodels} illustrates Bayesian networks generated with the REMIND algorithm.
-	Figure~\ref{fig:qmatrix} represents a disconnected model generated by simply converting the input $Q$-matrix into a Bayesian network;
-	this corresponds to the output of the initialization step of Algorithm~\ref{alg:remind}.
-	Figures~\ref{fig:constraint} and~\ref{fig:noconstraint} represent the prerequisite structures discovered by using domain knowledge or not.
-	In the fully data-driven model, we draw with red the edges that contradict our text book ordering heuristic.
+	The Bayesian networks generated with the BNPD algorithm are illustrated in Figure~\ref{fig:hed-structures}.
+	%Figure~\ref{fig:qmatrix} represents a disconnected model generated by simply converting the input $Q$-matrix into a Bayesian network;
+	%this corresponds to the output of the initialization step of Algorithm~\ref{alg:remind}.
+	%Figures~\ref{fig:constraint} and~\ref{fig:noconstraint} represent the prerequisite structures discovered by using domain knowledge or not.
+	%In the fully data-driven model, we draw with red the edges that contradict our text book ordering heuristic.
 	%Note that some edges are undirected indicating these directionalities of these edges can not determined given the observational data.
-	Our observation is that the structures learned are not random, sections (skills) in the same chapter tend to form clusters, 
-	even in the structure learned without the ordering constraint.
+	%Our observation is that the structures learned are not random, sections (skills) in the same chapter tend to form clusters, 
+	%even in the structure learned without the ordering constraint.
 	%Further, the inferred prerequisite structure are intuitively plausible, 
 	%as the topological order of the sections are roughly consistent with the book structure, even in the structure learned without the ordering constraint\todo{are you sure?}.
-	We should mention that the BIC score\footnote{In our experiment, we use the Bayesian information criterion (BIC) score to measure the fitness of a Bayesian network to the data. The BIC score for a Bayesian network model is composed of a likelihood term and a term to penalize the model complexity.} of the structure learned without the ordering constraint is slightly better than the BIC score of that learned with the ordering constraint, indicating that the first model fits the data better than the second one does.
-	
 	
 
-	Our approach also outputs the conditional probabilities associated with each skill and its direct prerequisites.
-	Figure~\ref{fig:chap123noorderCPT} plots the conditional distribution table for each skill.
-	Each sub-figure plots the conditional probability of student achieving the mastery of a skill against the mastery status of the skill's direct prerequisites. 
-	More specifically, X-axis specifies all possible mastery statuses of a skill's direct prerequisite, 
-	Y-axis is the probability of student achieving the mastery of the skill given the corresponding mastery status of its direct prerequisites.
-	We can see a trend in all plots that the probability of student mastering a skill increases monotonically when the student has acquired more prerequisites of the skill.
-	This is consistent with our intuition that mastering a skill's prerequisites will help student master the skill.
-	We also observed a small contradiction in the case of skill 3-2, which exemplifies the limitation of fully data-driven methods. 
+%	Our approach also outputs the conditional probabilities associated with each skill and its direct prerequisites.
+%	Figure~\ref{fig:chap123noorderCPT} plots the conditional distribution table for each skill.
+%	Each sub-figure plots the conditional probability of student achieving the mastery of a skill against the mastery status of the skill's direct prerequisites. 
+%	More specifically, X-axis specifies all possible mastery statuses of a skill's direct prerequisite, 
+%	Y-axis is the probability of student achieving the mastery of the skill given the corresponding mastery status of its direct prerequisites.
+%	We can see a trend in all plots that the probability of student mastering a skill increases monotonically when the student has acquired more prerequisites of the skill.
+%	This is consistent with our intuition that mastering a skill's prerequisites will help student master the skill.
+%	We also observed a small contradiction in the case of skill 3-2, which exemplifies the limitation of fully data-driven methods. 
 	%\hl{Please describe this figure with much more detail than this.  This currently does not have enough explanation to be understandable}
 	
-	\paragraph{Quantitative evaluation}
-	\label{sec:assessment_quantitative}
+	\paragraph{Predictive Performance of Learned Prerequisite Models}
+	\label{sec:predictive_performance}
 	
 	We now evaluate  REMIND using data  that has already been collected (\textit{post-hoc} analysis). %an evaluation of the REMIND algorithm using  . 
 	We evaluate how well the discovered Bayesian networks can predict  student performance on a 
