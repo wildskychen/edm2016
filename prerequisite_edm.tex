@@ -217,29 +217,36 @@ It then learns the Bayesian network through a two-stage process.
 \section{Previous Work}
 \label{sec:previous_work}
 Many works have investigated the discovery of prerequisite structures within domain models from data.
-Some of these works aim to learn the prerequisite structure of observed variables, e.g., the relationships among exercise problems.
+Some of these approaches discover the relationship of items without using latent variables.
+That is, the prerequisites do not use skill mappings, and only find dependencies between items~\cite{desmarais2006learned,vuong2010method,pavlik2008using,piech2015deep}.
 These include the Partial Order Knowledge Structures (POKS) algorithm \cite{desmarais2006learned, pavlik2008using} to learn the item-item relationships
-and the approach to determine the dependency structure of units in a curriculum with the student performance data observed at the unit level \cite{vuong2011method}.
+and an approach to determine the dependency structure of units in a curriculum with the student performance observed at the unit level \cite{vuong2011method}.
   
 To learn the relationships among skills from data where a student's knowledge of a skill is latent, 
 Brunskill proposed a method of computing and comparing the log likelihoods between the prerequisite model and the flat model (skills are independent) 
 on each skill pair to determine which model better fits the data \cite{brunskill2010estimating}. 
-Chen et al. \cite{chen2015discovering} then used probabilistic association rules mining to determine the prerequisite relationships between each pair of skills.
+Chen et al. \cite{chen2015discovering} used DINA (Deterministic Input Noisy AND) model to infer the knowledge states of students from their response data
+on test items and then used probabilistic association rules mining to determine the prerequisite relationships between each pair of skills.
 Both methods focus on estimating the pairwise prerequisite relationships, instead of optimizing the full structure of the skills.
 %Moreover, these approaches require many preconditions. For example, Brunskill's method assumes domain parameters called \emph{guess probability} and \emph{slip probability} are provided for each pair of item and skill.
 %Chen et al's approach requires manually specified thresholds to determine the existence of a prerequisite relationship.
 %The determination of these thresholds requires experts' intervention. 
 
-Bayesian networks have been extensively used to model skill topologies \cite{kaser2014beyond}.
-By modeling prerequisite relations as a Bayesian network, Scheines et al. used a Bayesian network structural learning algorithm to find the Bayesian network structure that best represents the distribution of the data \cite{scheines2014discovering}.
-Bayesian network allows encoding conditional independence relationships between skills, which enables more accurate modeling of the probabilistic dependence between skills.
-However, output from their algorithm is a class of Bayesian networks. These Bayesian networks represent different prerequisite structures.
+Bayesian network is a promising tool to model skill topologies as demonstrated in \cite{kaser2014beyond}.
+Bayesian network allows the modeling of full structure of skills and can encode conditional independence relationships between the skill.
+This enables more accurate modeling of the probabilistic dependence between skills.
+By modeling prerequisite relations as a Bayesian network, Scheines et al. converted the problem of prerequisite structure discovery to a Bayesian network structural learning problem, and proposed an algorithm to find the Bayesian network structures that fit the data \cite{scheines2014discovering}.
+However, the output from their algorithm is a class of Bayesian networks, which represent different prerequisite structures.
+They did not offer any solution to discriminate between these Bayesian networks.
 
-In this paper, we propose a novel pipeline to infer the prerequisite structures of skills. Our approach also uses Bayesian network to model the prerequisite relationships.
+
+In this paper, we propose a novel pipeline to infer the prerequisite structures of skills from students' response data on the test items. 
+Our approach also uses Bayesian network to model the prerequisite relationships.
 The pipeline first use a popular Bayesian network structure learning algorithm, 
-called Structural EM to select a class of Bayesian network models based on the distribution fitting to the data.
-It then uses constraint on the conditional probability tables to select one Bayesian network, which gives a unique prerequisite structure of skills.
-Finally, we show the discovered prerequisite structure can be used to improve student modeling.
+called Structural EM to select a class of Bayesian network models based on the distribution fitting of the data.
+It then uses constraint on the conditional probability tables to select one Bayesian network, which gives a unique prerequisite structure.
+We demonstrate the robustness of our proposed approach on noisy data that contains unaccounted hidden variables or missing values.
+Finally, we show the discovered prerequisite structures are useful for student modeling.
 
 \section{The Prerequisite Structure Discovery Pipeline}
 \label{sec:pre_pipeline}
@@ -621,7 +628,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	For example,  noise may occur due to hidden variables that are not explicitly modeled. 
 	%For example, students' performances in a test also depends on their individual ability (in addition to their mastery status of the required skills). 
 	%This will create noises in the data if we don't directly model the student's ability.
-	To evaluate the sensitivity of REMIND to noise, we synthesize Bayesian networks including a  \emph{StudentAbility} node that takes three possible states (low/med/high). 
+	To evaluate the sensitivity of BNPD to noise, we synthesize Bayesian networks including a  \emph{StudentAbility} node that takes three possible states (low/med/high). 
 	In these Bayesian networks, students' performance depends not only on whether they have mastered the skill, but also on their individual ability. % (in addition to their mastery status of the required skills).
 	For simplicity, all items in the setting are single-skilled items. 
 	We first simulated data from  Bayesian networks that have a  \emph{StudentAbility} variable to generate ``noisy" data samples, and 
@@ -878,27 +885,38 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	The model predictions were evaluated using the \textit{Area Under the Curve} (AUC) of the Receiver Operating Characteristic (ROC) curve metric.
 	Results are presented in Figure~\ref{fig:aucs}. 
 	The error bars show the $95\%$ confidence intervals calculated from the cross-validation.
-	For both \texttt{HED-chap2} and \texttt{HED-chap3} data sets, the best performing models are BNPD models, with an AUC of $0.803\pm0.008$ (Figure~\ref{fig:auc-chap2}) and an AUC of $0.775\pm0.007$ (Figure~\ref{fig:auc-chap2}), respectively. % and correspond to and no constraints, respectively.
+	On both \texttt{HED-chap2} and \texttt{HED-chap3} data sets, the BNPD models outperform the other four models.
+	The \emph{fully connected} models are the second best performing models.
+	On \texttt{HED-chap2}, BNPD model has an AUC of $0.803\pm0.008$ and the \emph{fully-connected} model has an AUC of $0.791\pm0.007$ (Figure~\ref{fig:auc-chap2}).
+	A paired $t$-test reveals that the AUCs of two models are statistically different with a $p$-value of $0.0022$.
+	On \texttt{HED-chap3}, BNPD model has an AUC of $0.775\pm0.007$ and the \emph{fully-connected} model has an AUC of $0.765\pm0.008$ (Figure~\ref{fig:auc-chap3}).
+	The AUCs of two models are also statistically different with a $p$-value of $0.01$.
+	The \emph{fully connected} models was outperformed by the simple prerequisite models which is much simpler, suggesting overfitting.% might have happened. 
+	
+	%(Figure~\ref{fig:auc-chap2}), respectively. % and correspond to and no constraints, respectively.
 	%these models are: $0.691\pm0.011$ (\emph{majority}), $0.761\pm0.007$ (\emph{disconnected}), $0.796\pm0.006$ (\emph{chain}),  $0.804\pm0.007$ (\emph{prerequisite model with order constraint}), $0.807\pm0.006$ (\emph{prerequisite model without order constraint}), $0.794\pm0.007$ (\emph{fully connected}).
 	%The comparison of the Area Under Curve (AUC) \todo{Area of what curve? ;-)} for these classifiers is presented in Figure~\ref{fig:auc-cv}.
 	%These two REMIND models outperform the other four models.
 	%\hl{How much is the AUC, though? Explain the graph with words here}
-	The \emph{fully connected} model performs the best among the four baseline predictors with an AUC of $0.796\pm0.006$.
-	A paired $t$-test reveals that both of the REMIND models significantly outperform the \emph{chain} model (the $p$-values are 0.0064 and 0.003).
-	However, the two REMIND prerequisite models are not statistically different from each other. 
-	We note that the \emph{fully connected} model was outperformed by the two prerequisite models and the \emph{chain} model, suggesting  overfitting.% might have happened. 
-
+	%We note that the \emph{fully connected} model was outperformed by the two prerequisite models and the \emph{chain} model, suggesting  overfitting.% might have happened. 
+	
 	
 	\section{Conclusion and Discussion \label{sec:conclusion}}
-	We believe we are the first ones to propose a pipeline of learning the prerequisite dependencies from data and use it for student modeling. 
-	Our work builds on prior work that discovers prerequisite  from data \cite{desmarais2006learned,vuong2010method, brunskill2010estimating,scheines2014discovering,chen2015discovering,piech2015deep}.
-	However, these approaches do not attempt to validate the prerequisite discovered using real student performance data.
+	Automatic discovery of prerequisite structure of skills from data is challenging.
+	In this paper, we proposed a novel pipeline for learning the prerequisite dependencies of hidden skill variables from students' response data on test items.
 	Our approach differs from prior work in several ways.
-	The approaches  discover the relationship of items without using latent variables.
-	This is, the prerequisites do not use skill mappings, and only find dependencies between items~\cite{desmarais2006learned,vuong2010method,piech2015deep}.
-	%i.e., the item-level prerequisite relationships, while we try to discover the prerequisite relationships between hidden skills.
-	For the approaches that can account for latent variables~\cite{brunskill2010estimating,chen2015discovering}, they focus on estimating the pairwise prerequisite relationships.
+	First, most of existing approaches focus on estimating the pairwise prerequisite relationships \cite{brunskill2010estimating,chen2015discovering}.
 	By contrast, we try to optimize the full structure of the model.
+	
+%	We believe we are the first ones to propose a pipeline of learning the prerequisite dependencies from data and use it for student modeling. 
+%	Our work builds on prior work that discovers prerequisite from data \cite{desmarais2006learned,vuong2010method, brunskill2010estimating,scheines2014discovering,chen2015discovering,piech2015deep}.
+%	However, these approaches do not attempt to validate the prerequisite discovered using real student performance data.
+%	Our approach differs from prior work in several ways.
+%	The approaches discover the relationship of items without using latent variables.
+%	This is, the prerequisites do not use skill mappings, and only find dependencies between items~\cite{desmarais2006learned,vuong2010method,piech2015deep}.
+%	%i.e., the item-level prerequisite relationships, while we try to discover the prerequisite relationships between hidden skills.
+%	For the approaches that can account for latent variables~\cite{brunskill2010estimating,chen2015discovering}, they focus on estimating the pairwise prerequisite relationships.
+%	By contrast, we try to optimize the full structure of the model.
 	
 	A contribution of our work is introducing the Structural EM algorithm to the educational community.
 	This approach has many advantages over prior work in that it does not require tuning of many parameters.
@@ -908,34 +926,33 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	Similarly, more recent approaches~\cite{chen2015discovering} require manually specified thresholds to determine the existence of a prerequisite relationship.
 	The determination of these thresholds requires experts' intervention. 
 	By contrast, the only required input of our algorithm is the observed student performance.
-	
+
 	%\hl{Two parts: Prerequisite discovery and student modeling with multiple kcs}
 	%\hl{For prereq work: Cite Ilya's work, French lab, Thorsten's work, may be Deep KT work}
 	%\hl{Have a comparative table of prereq work}
 	%\hl{For student modeling with multiple KCs cite LR-DBN work by YanBo, Topical HMM \&FAST work by Jose, conjunctive kt by Ken Koedinger}
 	
-	\section{Conclusion}
-	Although in some educational paradigms~\cite{koedinger2010knowledge} students are not supposed to move to subsequent lessons until they have mastered all of the prerequisites, these is not always attainable in practice.
-	We propose and evaluate the REMIND pipeline, a simple but effective novel algorithm that detects when a student needs remediation.
-	
-	A limitation of our study is that we only evaluated REMIND using simulations and posthoc analyses.
-	Future work may evaluate the REMIND algorithm in a randomized control trial.
-	Further, we evaluated our models using traditional statistical metrics, 
-	but recent work suggest that tailored evaluation metrics for tutoring system may be superior \cite{leopard_edm}.
-	Thus, another piece of future work is to evaluate REMIND using these evaluation metrics.
-	
-	The main contributions of our work are:
-	a novel data-driven algorithm that allows domain knowledge for designing remediation triggers;
-	a novel methodology to evaluate prerequisite graphs using student data;
-	and suggesting the Structural EM algorithm for educational applications.
-	
-	The advantage of REMIND are both qualitative and quantitative.
-	Qualitatively, REMIND allows us to understand the organization of the skills in the curriculum as it builds a prerequisite network of the skills in a $Q$-matrix.
-	When used in a learning model, REMIND builds a hypothesis of how practice affects the knowledge of the student.
-	Sometimes the practice may affect the skill directly, but sometimes it may affect a prerequisite.
-	Future work may validate these hypothesis in a controlled experiment.
-	Additionally, our quantitative results suggest that REMIND can be used to improved student modeling.
-	Overall, we believe that REMIND is promising technology to detect when a student needs help.
+%	Although in some educational paradigms~\cite{koedinger2010knowledge} students are not supposed to move to subsequent lessons until they have mastered all of the prerequisites, these is not always attainable in practice.
+%	We propose and evaluate the REMIND pipeline, a simple but effective novel algorithm that detects when a student needs remediation.
+%	
+%	A limitation of our study is that we only evaluated REMIND using simulations and posthoc analyses.
+%	Future work may evaluate the REMIND algorithm in a randomized control trial.
+%	Further, we evaluated our models using traditional statistical metrics, 
+%	but recent work suggest that tailored evaluation metrics for tutoring system may be superior \cite{leopard_edm}.
+%	Thus, another piece of future work is to evaluate REMIND using these evaluation metrics.
+%	
+%	The main contributions of our work are:
+%	a novel data-driven algorithm that allows domain knowledge for designing remediation triggers;
+%	a novel methodology to evaluate prerequisite graphs using student data;
+%	and suggesting the Structural EM algorithm for educational applications.
+%	
+%	The advantage of REMIND are both qualitative and quantitative.
+%	Qualitatively, REMIND allows us to understand the organization of the skills in the curriculum as it builds a prerequisite network of the skills in a $Q$-matrix.
+%	When used in a learning model, REMIND builds a hypothesis of how practice affects the knowledge of the student.
+%	Sometimes the practice may affect the skill directly, but sometimes it may affect a prerequisite.
+%	Future work may validate these hypothesis in a controlled experiment.
+%	Additionally, our quantitative results suggest that REMIND can be used to improved student modeling.
+%	Overall, we believe that REMIND is promising technology to detect when a student needs help.
 	
 % REFERENCES FORMAT
 % References must be the same font size as other body text.
