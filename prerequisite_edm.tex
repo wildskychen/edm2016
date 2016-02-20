@@ -803,9 +803,13 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	%Note that some edges are undirected indicating these directionalities of these edges can not determined given the observational data.
 	%Our observation is that the structures learned are not random, sections (skills) in the same chapter tend to form clusters, 
 	%even in the structure learned without the ordering constraint.
-	The inferred prerequisite structures are intuitively plausible, 
-	as the topological order of the sections are consistent with the book structure, which reflects subject matter experts's belief on the prerequisite relationships 
-	between the sections of each book chapter.
+	Our observation is that the topological order of the sections in both structures are fully consistent with the book ordering heuristic,
+	This shows an agreement between our fully data-driven method and human experts.
+	We also ran PARM approach to learn pair-wise prerequisite relationships from these data sets.
+	For \texttt{HED-chap2}, PARM outputs two relations: $2\_5\rightarrow 2\_6$ and $2\_5\rightarrow 2\_7$  
+	%The inferred prerequisite structures are intuitively plausible, 
+	%as the topological order of the sections are consistent with the book structure, which reflects subject matter experts's belief on the prerequisite relationships 
+	%between the sections of each book chapter. 
 
 %	Our approach also outputs the conditional probabilities associated with each skill and its direct prerequisites.
 %	Figure~\ref{fig:chap123noorderCPT} plots the conditional distribution table for each skill.
@@ -817,11 +821,12 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 %	We also observed a small contradiction in the case of skill 3-2, which exemplifies the limitation of fully data-driven methods. 
 	%\hl{Please describe this figure with much more detail than this.  This currently does not have enough explanation to be understandable}
 	
-	\paragraph{Predictive Performance of Learned Prerequisite Models}
+	\paragraph{Predictive Performance of Prerequisite Models}
 	\label{sec:predictive_performance}
-	
+	BNPD not only discovers the topological relationships among skills, but also outputs a statistical model in the form of Bayesian network.
+	This statistical model can be used for inference and predictive modeling. 
 	%We now evaluate  REMIND using data  that has already been collected (\textit{post-hoc} analysis). %an evaluation of the REMIND algorithm using  . 
-	We now evaluate how well the discovered Bayesian networks can predict student performance
+	We now evaluate how well the generated Bayesian networks can predict student performance
 	%student's knowledge about a skill given his/her performance on any of the test items. 
 	%Since student's knowledge about a skill is not directly observed, 
 	%we are unable to assess the predictive performance of these models involved in this task.
@@ -836,83 +841,55 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	This can be computed efficiently using the Junction tree algorithm \cite{koller2009probabilistic}. 
 	We then do binary classification based on the posterior probability.
 	
-	We compare REMIND with four baseline predictors:
+	We compare the Bayesian network models generated from BNPD with four baseline predictors:
 	\begin{itemize}
 		\item  A \emph{majority} classifier which always classifies  an instance to the majority class.
 		For example, if majority of the students get an item wrong, other students would likely get it wrong.
 		\item  A Bayesian network model in which the skill variables are \emph{disconnected}. 
 		This corresponds to using the $Q$-matrix  Bayesian network of Figure~\ref{fig:qmatrix}.
 		This model assumes that the skill variables are marginally independent of each other.
-		\item A Bayesian network model in which the skill variables are connected in a \emph{chain} structure, i.e., 1-1$\rightarrow$1-2$\rightarrow$1-3$\rightarrow\dots$
+		\item A Bayesian network model in which the skill variables are connected in a \emph{chain} structure, i.e., 2-2$\rightarrow$2-3$\rightarrow$2-4$\rightarrow\dots$
 		This assumes that a section (skill) only depends on the previous section.
 		In other words, a first-order Markov chain dependency structure.
 		\item A \emph{fully connected} Bayesian network where skill variables are fully connected with each other.
 		This model assumes no conditional independence between skill variables and can encode any joint distribution over the skill variables.
 		However, it has exponential number of free parameters and thus can easily overfit the data.
 	\end{itemize}
-	
-	The parameters of these baseline Bayesian network predictors are estimated from the \texttt{traditional} data set.
-	We first did cross-validation experiments to evaluate these classifiers using the \texttt{traditional} data.
-	Figure~\ref{fig:auc-cv} evaluates the model predictions using  the \textit{Area Under the Curve} (AUC) of the Receiver Operating Characteristic (ROC) curve metric.
-	The error bars show the $95\%$ confidence intervals calculated from the 10-fold cross-validation.
-	The  best performing models are REMIND with ordering constraint with an AUC of $0.804\pm0.007$ and REMIND with no ordering constraint with an AUC of $0.807\pm0.006$. % and correspond to and no constraints, respectively.
-	%these models are: $0.691\pm0.011$ (\emph{majority}), $0.761\pm0.007$ (\emph{disconnected}), $0.796\pm0.006$ (\emph{chain}),  $0.804\pm0.007$ (\emph{prerequisite model with order constraint}), $0.807\pm0.006$ (\emph{prerequisite model without order constraint}), $0.794\pm0.007$ (\emph{fully connected}).
-	%The comparison of the Area Under Curve (AUC) \todo{Area of what curve? ;-)} for these classifiers is presented in Figure~\ref{fig:auc-cv}.
-	These two REMIND models outperform the other four models.
-	%\hl{How much is the AUC, though? Explain the graph with words here}
-	The \emph{chain} model performs the best among the four baseline predictors with an AUC of $0.796\pm0.006$.
-	A paired $t$-test reveals that both of the REMIND models significantly outperform the \emph{chain} model (the $p$-values are 0.0064 and 0.003).
-	However, the two REMIND prerequisite models are not statistically different from each other. 
-	We note that the \emph{fully connected} model was outperformed by the two prerequisite models and the \emph{chain} model, suggesting  overfitting.% might have happened. 
-	
-	%\begin{figure}
-	%	\begin{center}
-	%		\includegraphics[width=0.95\linewidth]{figures/chap123_auc_allmodels.eps}
-	%	\end{center}
-	%	\caption{\small Comparison of AUC of six models to predict student performance on exercise items for \texttt{traditional} data set. The results are from 10 fold cross-validation.} 
-	%	\label{fig:auc-cv}
-	%\end{figure} 
-	%
-	%\begin{figure}
-	%	\begin{center}
-	%		\includegraphics[width=1.0\linewidth]{figures/chap123conn_auc_allmodels.eps}
-	%	\end{center}
-	%	\caption{\small Comparison of AUC of six models to predict student performance on exercise items for \texttt{virtual} data set. Models are trained using  \texttt{traditional} data set.} 
-	%	\label{fig:conn-auc}
-	%\end{figure}
-	
-	We now investigate the extent of which a REMIND model can be generalized to a different implementation of the curriculum. 
-	For this, we use the models constructed from students using the \texttt{traditional} curriculum  to make prediction on the \texttt{virtual} curriculum.
-	The comparison of AUCs is illustrated in Figure~\ref{fig:conn-auc}.
-	The error bars show the $95\%$ confidence intervals calculated with an implementation of 
-	the Logit method\footnote{\url{http://www.subcortex.net/research/code/area_under_roc_curve}}, 
-	which corrects for the non-independence of the points of the ROC curve.
-	Again, the two REMIND prerequisite models clearly outperform other four models. 
-	The AUCs of both REMIND models are $0.784\pm0.010$.
-	Curiously, in this experiment the difference between REMIND and the chain baseline becomes more prominent.
-	
-	\begin{figure}[ht]
+
+	\begin{figure}[!ht]
 		\centering
 		\begin{subfigure}[b]{1.0\linewidth}
 			\centering
-			\includegraphics[width=0.9\linewidth]{figures/chap123_auc_allmodels.eps}
-			\caption{\texttt{traditional} AUC results. The results are from 10 fold cross-validation.}
-			\label{fig:auc-cv}
+			\includegraphics[width=0.8\linewidth]{figures/hed_chap2_30_auc.eps}
+			\caption{\texttt{HED-chap2} AUC results. }
+			\label{fig:auc-chap2}
 		\end{subfigure}\\
 		\begin{subfigure}[b]{1.0\linewidth}
 			\centering
-			\includegraphics[width=0.9\linewidth]{figures/chap123conn_auc_allmodels.eps}
-			\caption{\texttt{virtual} AUC results. Models are trained using  \texttt{traditional} data set.}
-			\label{fig:conn-auc}
+			\includegraphics[width=0.8\linewidth]{figures/hed_chap3_33_auc.eps}
+			\caption{\texttt{HED-chap3} AUC results.}
+			\label{fig:auc-chap3}
 		\end{subfigure}%
-		\caption{Comparison of AUC of six models to predict student performance on exercise items}
-	\end{figure} 
+		\caption{Comparison of AUC of five models to predict student performance on test items. The results are from 10 fold cross-validation.\label{fig:aucs}}
+	\end{figure} 	
 	
+	The parameters of these baseline Bayesian network predictors are estimated from the data.
+	We did 10-fold cross-validation to evaluate the classifiers.
+	The model predictions were evaluated using the \textit{Area Under the Curve} (AUC) of the Receiver Operating Characteristic (ROC) curve metric.
+	Results are presented in Figure~\ref{fig:aucs}. 
+	The error bars show the $95\%$ confidence intervals calculated from the cross-validation.
+	For both \texttt{HED-chap2} and \texttt{HED-chap3} data sets, the best performing models are BNPD models, with an AUC of $0.803\pm0.008$ (Figure~\ref{fig:auc-chap2}) and an AUC of $0.775\pm0.007$ (Figure~\ref{fig:auc-chap2}), respectively. % and correspond to and no constraints, respectively.
+	%these models are: $0.691\pm0.011$ (\emph{majority}), $0.761\pm0.007$ (\emph{disconnected}), $0.796\pm0.006$ (\emph{chain}),  $0.804\pm0.007$ (\emph{prerequisite model with order constraint}), $0.807\pm0.006$ (\emph{prerequisite model without order constraint}), $0.794\pm0.007$ (\emph{fully connected}).
+	%The comparison of the Area Under Curve (AUC) \todo{Area of what curve? ;-)} for these classifiers is presented in Figure~\ref{fig:auc-cv}.
+	%These two REMIND models outperform the other four models.
+	%\hl{How much is the AUC, though? Explain the graph with words here}
+	The \emph{fully connected} model performs the best among the four baseline predictors with an AUC of $0.796\pm0.006$.
+	A paired $t$-test reveals that both of the REMIND models significantly outperform the \emph{chain} model (the $p$-values are 0.0064 and 0.003).
+	However, the two REMIND prerequisite models are not statistically different from each other. 
+	We note that the \emph{fully connected} model was outperformed by the two prerequisite models and the \emph{chain} model, suggesting  overfitting.% might have happened. 
+
 	
-	
-	
-	
-	\section{Relation to Prior Work\label{sec:relatedwork}}
+	\section{Conclusion and Discussion \label{sec:conclusion}}
 	We believe we are the first ones to propose a pipeline of learning the prerequisite dependencies from data and use it for student modeling. 
 	Our work builds on prior work that discovers prerequisite  from data \cite{desmarais2006learned,vuong2010method, brunskill2010estimating,scheines2014discovering,chen2015discovering,piech2015deep}.
 	However, these approaches do not attempt to validate the prerequisite discovered using real student performance data.
@@ -931,10 +908,6 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	Similarly, more recent approaches~\cite{chen2015discovering} require manually specified thresholds to determine the existence of a prerequisite relationship.
 	The determination of these thresholds requires experts' intervention. 
 	By contrast, the only required input of our algorithm is the observed student performance.
-	
-	A limitation of our work is that we do not address in this paper is comparing Structural EM with these approaches.
-	Future work may address a comprehensive comparison of different prerequisite structure methods.
-	
 	
 	%\hl{Two parts: Prerequisite discovery and student modeling with multiple kcs}
 	%\hl{For prereq work: Cite Ilya's work, French lab, Thorsten's work, may be Deep KT work}
@@ -963,10 +936,11 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	Future work may validate these hypothesis in a controlled experiment.
 	Additionally, our quantitative results suggest that REMIND can be used to improved student modeling.
 	Overall, we believe that REMIND is promising technology to detect when a student needs help.
+	
 % REFERENCES FORMAT
 % References must be the same font size as other body text.
 \bibliographystyle{SIGCHI-Reference-Format}
-{
+{%\small
 	\bibliography{references}
 }	
 
