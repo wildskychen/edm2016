@@ -91,7 +91,7 @@
 
 \begin{document}
 	
-	\title{Towards Automatic Discovery of Prerequisite Structure of Skills from Student Performance Data}
+	\title{Learning and Evaluating Prerequisite Graphs from Student Performance Data}
 	%\subtitle{[Extended Abstract]
 	%\titlenote{A full version of this paper is available as
 	%\textit{Author's Guide to Preparing ACM SIG Proceedings Using
@@ -903,11 +903,18 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	
 	
 	\section{Conclusion and Discussion \label{sec:conclusion}}
-	Automatic discovery of prerequisite structure of skills from data is challenging.
-	In this paper, we proposed a novel pipeline for learning the prerequisite dependencies of hidden skill variables from students' response data on test items.
-	Our approach differs from prior work in several ways.
-	First, most of existing approaches focus on estimating the pairwise prerequisite relationships \cite{brunskill2010estimating,chen2015discovering}.
-	By contrast, we try to optimize the full structure of the model.
+	Discovering prerequisite structure of skills from data is challenging since skills are latent variables in the data.
+	In this paper, we proposed BNPD, a novel pipeline for learning the prerequisite dependencies of hidden skill variables from students' response data on test items.
+	%We converted the prerequisite discovery problem to a problem of Bayesian network structure learning with latent variables.
+	%We introduced the Structural EM 
+	We demonstrated our approach using both synthetic and real-world data under different conditions such as data contains missing values and noises.
+	We show the discovered prerequisite models are useful for predicting student performance.
+	%Our approach differs from prior work in several ways.
+	%First, most of existing approaches focus on estimating the pairwise prerequisite relationships \cite{brunskill2010estimating,chen2015discovering}.
+	%By contrast, we try to optimize the full structure of the model by converting the problem to a problem of Bayesian network structure learning with latent variables.
+	%Studying prerequisite structure discovery in the context of Bayesian network structure learning has been explored By Scheines and his colleagues in \cite{scheines2014discovering}.
+	%However, due to the Markov equivalence between Bayesian network structures, the model output from their approach is inaccurate and can represent different prerequisite structures.
+	%Our approach discriminates between the equivalent Bayesian network using constraints derived from the domain knowledge of prerequisite relationship. 
 	
 %	We believe we are the first ones to propose a pipeline of learning the prerequisite dependencies from data and use it for student modeling. 
 %	Our work builds on prior work that discovers prerequisite from data \cite{desmarais2006learned,vuong2010method, brunskill2010estimating,scheines2014discovering,chen2015discovering,piech2015deep}.
@@ -927,6 +934,13 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	Similarly, more recent approaches~\cite{chen2015discovering} require manually specified thresholds to determine the existence of a prerequisite relationship.
 	The determination of these thresholds requires experts' intervention. 
 	By contrast, the only required input of our algorithm is the observed student performance.
+	
+	Studying prerequisite structure discovery in the context of Bayesian network structure learning is not new \cite{scheines2014discovering}.
+	However, existing approach does not discriminate between equivalent Bayesian network structures which represent different prerequisite structures.
+	In our approach, we address this problem by using an ad-hoc strategy to refine the prerequisite model with a constraint on conditional distributions tables. 
+	This strategy is quite empirical.
+	In future work, it may be wise to do Structural EM learning with edge orientation in one pass. 
+	For example, in Structural EM search, we can use a scoring function which combines the BIC score and a term that penalizes the structures that violate the CPT constraint. In such way, the prerequisite structure learning may be more accurate.
 
 	%\hl{Two parts: Prerequisite discovery and student modeling with multiple kcs}
 	%\hl{For prereq work: Cite Ilya's work, French lab, Thorsten's work, may be Deep KT work}
