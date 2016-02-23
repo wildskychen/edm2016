@@ -144,10 +144,11 @@
 \maketitle
 \begin{abstract}
 Knowing the prerequisite structure of skills is crucial for designing curriculum, assessing mastery and for student modeling.
-These prerequisite structures are hand-engineered by subject matter expert in a costly and time-consuming process.
+These prerequisite structures are often hand-engineered by subject matter expert in a costly and time-consuming process.
 %Traditionally, the prerequisite structures of skills are manually specified by human experts and this process is often time-consuming.
 %Automatic discovery of the prerequisite structures from educational data is intriguing yet challenging since student's mastery of skills are latent variables.
-In this paper, we introduce a novel data-driven pipeline for inferring the prerequisite structure of skill from student performance on test items. 
+In this paper, we introduce Bayesian Network based Prerequisite Discovery (BNPD), 
+a novel data-driven pipeline for inferring the prerequisite structure of skill from student performance on test items. 
 By modeling the prerequisite relations as a Bayesian network, the pipeline estimates the causal structure and the probabilistic dependence among the skills 
 via a two-stage learning process. 
 In the first stage, the Structural Expectation Maximization (Structural EM) algorithm is used to select a class of Bayesian networks based on distribution fitting of student data;
@@ -219,8 +220,8 @@ It then learns the Bayesian network through a two-stage process.
 Many works have investigated the discovery of prerequisite structures within domain models from data.
 Some of these approaches discover the relationship of items without using latent variables.
 That is, the prerequisites do not use skill mappings, and only find dependencies between items~\cite{desmarais2006learned,vuong2010method,pavlik2008using,piech2015deep}.
-These include the Partial Order Knowledge Structures (POKS) algorithm \cite{desmarais2006learned, pavlik2008using} to learn the item-item relationships
-and an approach to determine the dependency structure of units in a curriculum with the student performance observed at the unit level \cite{vuong2011method}.
+%These include the Partial Order Knowledge Structures (POKS) algorithm \cite{desmarais2006learned, pavlik2008using} to learn the item-item relationships
+%and an approach to determine the dependency structure of units in a curriculum with the student performance observed at the unit level \cite{vuong2011method}.
   
 To learn the relationships among skills from data where a student's knowledge of a skill is latent, 
 Brunskill proposed a method of computing and comparing the log likelihoods between the prerequisite model and the flat model (skills are independent) 
@@ -268,7 +269,7 @@ Modeling prerequisites as edges in a Bayesian network allows us to frame the dis
 	\begin{center}
 		\includegraphics[width=1.0\linewidth]{figures/studentmodel.png}
 	\end{center}
-	\caption{A hypothetical Bayesian network learned with Algorithm~\ref{alg:remind}. 
+	\caption{A hypothetical Bayesian network learned with Algorithm~\ref{alg:bnpd}. 
 		Solid edges are given by the item to skill mapping, dashed edges between skill variables are to be discovered from data.
 		The conditional probability tables are to be learned.}
 	\label{fig:smexample} 
@@ -348,7 +349,7 @@ We now describe the  steps of BNPD in detail.
 \footnotetext{$P(S_i=a|S_j=b)$ can be computed using any Bayesian network inference algorithm such as Junction tree algorithm\cite{koller2009probabilistic}}
 
 \subsection{Initial Bayesian Network}
-
+\label{sec:initial_bn}
 BNPD represents the prerequisite structure using Bayesian networks that use latent variables to represent the student knowledge of a skill, 
 and observed variables that represent the student performance answering items (e.g, correct or incorrect).
 We first create an initial Bayesian network that complies to the skill-to-item $Q$-matrix
@@ -359,6 +360,7 @@ That is, we create an arc to each item from each of its required skills and leav
 With the created Bayesian network as an initial network, we learn the arcs between the skill variables using Structural EM.
 
 \subsection{Structural EM}
+\label{sec:sem}
 
 A common solution to learning a Bayesian network from data is the score-and-search approach \cite{cooper1992bayesian,heckerman1997bayesian}.
 This approach uses a scoring function\footnote{A commonly used scoring function is Bayesian information criterion (BIC), which is composed of a likelihood term and a term to penalize the model complexity} to measure the fitness of a Bayesian network structure to the observed data, 
@@ -416,14 +418,17 @@ Structural EM can be applied to this type of data since it was originally develo
 The general idea is, in the \emph{E-step}, the algorithm also computes the expected values for missing data points, in addition for hidden variables, . 
 
 \subsection{Discriminate Between Equivalent BNs}
+\label{sec:discriminatebns}
 
+\subsubsection{Use Domain Knowledge}
+\label{sec:usedomain}
 Structural EM selects Bayesian network model based on how well it explains the distribution of the data. 
 Bayesian network theory states that some Bayesian networks are statistically equivalent in representing the data.
 Thus, the output from Structure EM is an equivalence class that may contain many Bayesian network structures.
 These equivalent Bayesian networks have the same skeleton and the same $v$-structures\footnote{
 A $v$-structure in a Bayesian network $G$ is an ordered triple of nodes $(u,v,w)$ such that $G$ contains the directed edges $u\rightarrow v$ and $w\rightarrow v$ and $u$ and $w$ are not adjacent in $G$. \cite{verma1990equivalence}.}. 
-For instance, Figure~\ref{fig:equivnets} gives an example of three simple Bayesian networks that are not distinguishable by Structural EM algorithm.
-They share the skeleton but differ in the orientation of the edge. They apparently represent three different prerequisite structures.
+For instance, Figure~\ref{fig:equivnets} gives an example of two simple Bayesian networks that are not distinguishable by Structural EM algorithm.
+They share the skeleton but differ in the orientation of the edge. They apparently represent two different prerequisite structures.
 To determine which structure is the case, we shall determine the orientation of each reversible edge.
 For this purpose, we can use the following domain knowledge.
 
@@ -437,7 +442,7 @@ We can check for each reversible edge $S_i-S_j$ in the Bayesian network, either 
 If the former holds, $S_i\rightarrow S_j$; otherwise, $S_i\leftarrow S_j$.  
 However, in real situations, it is possible for a student to master the post-requisite even he does not know the prerequisite. 
 Further, there is always noise in the data. Thus, the two conditional probabilities $P(S_1=1|S_2=1)$ and $P(S_2=0|S_1=0)$ are not exactly but close to 1.
-Thus, we use the following empirical rule: if $P(S_1=1|S_2=1)\cdot P(S_2=0|S_1=0)>P(S_2=1|S_1=1)\cdot P(S_1=0|S_2=0)$, we determine $S_1\rightarrow S_2$; 
+Thus, we use the following empirical rule: if $P(S_1=1|S_2=1)\cdot P(S_2=0|S_1=0)\ge P(S_2=1|S_1=1)\cdot P(S_1=0|S_2=0)$, we determine $S_1\rightarrow S_2$; 
 otherwise, we determine $S_1\leftarrow S_2$. 
 The intuition behind this is that the two probabilities $P(S_1=1|S_2=1)$ and $P(S_2=0|S_1=0)$ are certificates of the prerequisite structure $S_1\rightarrow S_2$.
 The larger of these two probabilities, the more likely the relationship $S_1\rightarrow S_2$ holds.
@@ -445,40 +450,82 @@ Since here we are concerned with which direction the edge goes, we simply compar
 
 	\begin{figure}[!ht]\small
 		\centering
-		\begin{subfigure}[t]{0.32\linewidth}
+		\begin{subfigure}[t]{0.48\linewidth}
 			\centering
-			\includegraphics[width=0.9\linewidth]{figures/s1s2s3.png}
+			\includegraphics[width=0.5\linewidth]{figures/s1s2.png}
 			\caption{\label{fig:equivnet1}}
 			%$P(S_1=1|S_2=1)=0.86$ \\ $P(S_2=0|S_1=0)=0.92$
 		\end{subfigure}
-		\begin{subfigure}[t]{0.32\linewidth}
+		\begin{subfigure}[t]{0.48\linewidth}
 			\centering
-			\includegraphics[width=0.9\linewidth]{figures/s2s1s3.png}
+			\includegraphics[width=0.5\linewidth]{figures/s2s1.png}
 			\caption{\label{fig:equivnet2}}
 			%$P(S_2=1|S_1=1)=0.52$ \\ $P(S_1=0|S_2=0)=0.64$
-		\end{subfigure}
-		\begin{subfigure}[t]{0.32\linewidth}
-			\centering
-			\includegraphics[width=0.9\linewidth]{figures/s3s2s1.png}
-			\caption{\label{fig:equivnet3}}
-			%$P(S_2=1|S_1=1)=0.52$ \\ $P(S_1=0|S_2=0)=0.64$
 		\end{subfigure}		
-		\caption{Three equivalent Bayesian networks representing different prerequisite structures.\label{fig:equivnets} }
+		\caption{Two equivalent Bayesian networks representing different prerequisite structures.\label{fig:equivnets} }
 	\end{figure}
+	
+		\begin{figure}[!ht]\small
+			\centering
+			\begin{subfigure}[t]{0.32\linewidth}
+				\centering
+				\includegraphics[width=1.05\linewidth]{figures/contour1.png}
+				\caption{\label{fig:contour1}}
+			\end{subfigure}
+			\begin{subfigure}[t]{0.32\linewidth}
+				\centering
+				\includegraphics[width=1.05\linewidth]{figures/contour2.png}
+				\caption{\label{fig:contour2}}
+			\end{subfigure}
+			\begin{subfigure}[t]{0.32\linewidth}
+				\centering
+				\includegraphics[width=1.05\linewidth]{figures/contour3.png}
+				\caption{\label{fig:contour3}}
+			\end{subfigure}						
+			\caption{Contour plot of $log(ratio)$ for various values of $P(S_2=0|S_1=0)$.\label{fig:contours} }
+		\end{figure}
 
+\subsubsection{Theoretical Justification}
+\label{sec:theory}
+
+The empirical rule proposed in section~\ref{sec:usedomain} needs theoretical justification.
+We consider the simple Bayesian network in Figure~\ref{fig:equivnet1}, which has only one reversible edge $S_1-S_2$.
+This model has three free conditional probability parameters: $P(S_1=0)=p$, $P(S_2=0|S_1=0)=q$, $P(S_2=1|S_1=1)=r$.
+If we observe data generated from this model, 
+can we determine the edge $S_1\rightarrow S_2$? %by comparing $P(S_1=1|S_2=1)\cdot P(S_2=0|S_1=0)$ and $P(S_2=1|S_1=1)\cdot P(S_1=0|S_2=0)$?
+Equivalently, we use rule $ratio=\frac{P(S_i=1|S_j=1)\cdot P(S_j=0|S_i=0)}{P(S_j=1|S_i=1)\cdot P(S_i=0|S_j=0)}\ge 1$.
+Using Bayes rule and rules of probability, the rule becomes
+\begin{align}
+ratio=\frac{(1-p)(qp+1-r-p+pr)}{p[r(1-p)+p(1-q)]}\ge 1,
+\end{align}
+which can be simplified to
+\begin{align}
+\frac{(1-p)(1-r)-p(1-q)}{p[r(1-p)+p(1-q)]}\ge 0.
+\end{align}
+
+The rule holds only if $(1-p)(1-r)-p(1-q)\ge 0$. Thus, we can use the rule to orient edges if $(1-p)(1-r)-p(1-q)\ge 0$.
+Since $ratio$ depends on $p$, $q$ and $r$, we study how $ratio$ changes with these parameters.
+Figure~\ref{fig:contours} shows the contour plots of $log(ratio)$ against $P(S_1=0)$ and $P(S_2=1|S_1=1)$ for three different values of $P(S_2=0|S_1=0)$.
+The white region in each contour plot is the region where the rule is not applicable. As it is showed, if $P(S_2=0|S_1=0)=q=1$, 
+the rule is always applicable no matter what values $P(S_1=0)$ and $P(S_2=1|S_1=1)$ are.
+With $P(S_2=0|S_1=0)$ decreasing, the white region becomes larger and the rule becomes more inapplicable.
+$P(S_2=0|S_1=0)$ can be interpreted as the strength of the prerequisite relationship. When the prerequisite relationship is weak, the rule is less applicable 
+and it is harder to discover the prerequisite relationship.
+
+\subsubsection{Orient All Reversible Edges}
 Using the empirical rule, we can orient every reversible edge in the network structure. 
-However, determining orientations for all reversible edges are not independent and may conflict each other.
+However, determining orientations of each reversible edge is not independent and may conflict each other.
 Having oriented one edge would constrain the orientation of other reversible edges because we have to ensure the graph is a DAG and the equivalence is not violated.
 For example, in Figure~\ref{fig:equivnet1}, if we have determined $S_1\rightarrow S_2$, the edge $S_2\rightarrow S_3$ is enforced.
 In this paper, we take an ad-hoc strategy to determine the orientation for all reversible edges. 
-For each reversible edge $S_i-S_j$, we compute $ratio=\frac{P(S_i=1|S_j=1)\cdot P(S_j=0|S_i=0)}{P(S_j=1|S_i=1)\cdot P(S_i=0|S_j=0)}$,
-then  $ratio^*=ratio$ if $ratio >1$ and $ratio^*=\frac{1}{ratio}$ otherwise. The larger the $ratio^*$ is, the more confidently when we decide the orientation.
+For each reversible edge $S_i-S_j$, we let $ratio^*=ratio$ if $ratio >1$ and $ratio^*=\frac{1}{ratio}$ otherwise. 
+The larger the $ratio^*$ is, the more confidently when we decide the orientation.
 We sort the list of reversible edges by $ratio^*$ in descending order. We then orient the edges in this order.
-When one edge is oriented, the constraint is propagated to other reversible edges. In practical implementation, we take a different strategy: 
+When one edge is oriented, the constraint is propagated to other reversible edges. In practical implementation, we use a different strategy: 
 we first enumerate all equivalent Bayesian networks and make them a list of candidates; 
 when an edge is oriented to $S_i\rightarrow S_j$, we remove all contradicting Bayesian networks from the list.
-Eventually only one Bayesian network structure stands. This procedure is also detailed in the \emph{Orient edges} section of Algorithm~\ref{alg:bnpd}.  
-The $EnumEquivalentDAGs(G_i)$ implements the algorithm of enumerating equivalent DAGs proposed in \cite{chen2014finding}.
+Eventually only one Bayesian network structure stands. This procedure is detailed in the \emph{Orient edges} section of Algorithm~\ref{alg:bnpd}.  
+The $EnumEquivalentDAGs(G_i)$ implements the algorithm of enumerating equivalent DAGs in \cite{chen2014finding}.
 
 \section{Evaluation}
 In \S~{\ref{sec:synthetic}, we  evaluate BNPD with simulated data  to assess the quality of the discovered prerequisite structures.
@@ -620,8 +667,9 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 		\label{fig:f1-single-multi}
 		%\vspace{-1em}
 	\end{figure} 
+
 	
-	\subsubsection{Sensitivity to Noise}
+	\subsubsection{Sensitivity to Noise}	
 	
 	%\hl{Hard to read}
 	Real-world data sets often contain various types of noise.
@@ -636,32 +684,33 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	then use this data to recover the prerequisite structure. % from these truncated data samples. 
 	Figure~\ref{fig:stuabilitymodel} illustrates the procedure of this sensitivity analysis experiment.
 	
-	Figure~\ref{fig:f1-noisy} compare the results were noise was introduced or not.
+			\begin{figure}[!ht]
+				\begin{center}
+					\includegraphics[width=1.0\linewidth]{figures/studentability.png}
+				\end{center}
+				\caption{Evaluation of BNPD with noisy data} 
+				\label{fig:stuabilitymodel}
+			\end{figure}
+			
+			\begin{figure}[!ht]
+				\begin{center}
+					\centering
+					\begin{tabular}{>{\centering}m{1.5in} >{\centering\arraybackslash}m{1.5in}}
+						\includegraphics[width=1.1\linewidth]{figures/F1A_single.eps} &\includegraphics[width=1.1\linewidth]{figures/F1A_single_noisy.eps}\\
+						\includegraphics[width=1.1\linewidth]{figures/F1O_single.eps} &\includegraphics[width=1.1\linewidth]{figures/F1O_single_noisy.eps}\\
+						No Noise & Noisy
+					\end{tabular}
+				\end{center}
+				\caption{Results of adding systematic noise. Top: Comparison of $F_1$ scores for adjacency discovery. Horizontal lines are baseline $F_1$ scores computed for fully connected Bayesian networks. Bottom: Comparison of $F_1$ scores for edge orientation. }
+				\label{fig:f1-noisy} 
+			\end{figure}
+	
+	Figure~\ref{fig:f1-noisy} compare the results where noise was introduced or not.
 	Interestingly, the noise does not harm the learning accuracy at all, and actually improves the accuracy.
 	We hypothesize that the existence of additional hidden variable increases the variance of the data which can help the structure learning.
 	%remove noise by separating students by ability
 	%\hl{Can you show the ``true" Bayes net (i.e, with student ability node) and the one we are trying to learn?}
-	
-	\begin{figure}[!ht]
-		\begin{center}
-			\includegraphics[width=1.0\linewidth]{figures/studentability.png}
-		\end{center}
-		\caption{Evaluation of BNPD with noisy data} 
-		\label{fig:stuabilitymodel}
-	\end{figure}
-	
-	\begin{figure}[!ht]
-		\begin{center}
-			\centering
-			\begin{tabular}{>{\centering}m{1.5in} >{\centering\arraybackslash}m{1.5in}}
-				\includegraphics[width=1.1\linewidth]{figures/F1A_single.eps} &\includegraphics[width=1.1\linewidth]{figures/F1A_single_noisy.eps}\\
-				\includegraphics[width=1.1\linewidth]{figures/F1O_single.eps} &\includegraphics[width=1.1\linewidth]{figures/F1O_single_noisy.eps}\\
-				No Noise & Noisy
-			\end{tabular}
-		\end{center}
-		\caption{Results of adding systematic noise. Top: Comparison of $F_1$ scores for adjacency discovery. Horizontal lines are baseline $F_1$ scores computed for fully connected Bayesian networks. Bottom: Comparison of $F_1$ scores for edge orientation. }
-		\label{fig:f1-noisy} 
-	\end{figure}
+
 	
 			\begin{figure}[!ht]
 				\begin{center}
@@ -691,8 +740,8 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	These values have been used in the simulation experiments in \cite{chen2015discovering}.
 	The evaluation metric used is $F_1=\frac{2*TPR*TDR}{TPR+TDR}$, where $TPR=\frac{\text{\# of correct relationships learned}}{\text{\# of relationships in true model}}$
 	and $TDR=\frac{\text{\# of correct relationships learned}}{\text{\# of relationships in learned model}}$.
-	The result is presented in Figure~\ref{fig:f1-parm}. It shows that BNPD significantly outperforms PARM $F_1$ score for sample size $n\ge 500$.
-	The lower $F_1$ score by PARM is caused by lower $TPR$, i.e., PARM failed to discover many prerequisite relationships (data not shown).
+	The result is presented in Figure~\ref{fig:f1-parm}. It shows that BNPD significantly outperforms PARM for sample size $n\ge 500$.
+	The low $F_1$ score by PARM is caused by low $TPR$, i.e., PARM failed to discover many prerequisite relationships (data not shown).
 	
 		\begin{figure}[!th]
 			\begin{center}
@@ -784,23 +833,23 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 %				\label{fig:hed-structures} 
 %			\end{figure*}
 
-	\begin{figure*}%[ht]
+	\begin{figure}[!ht]
 		\centering
-		\begin{subfigure}[b]{0.45\linewidth}
+		\begin{subfigure}[b]{0.9\linewidth}
 			\centering
-			\includegraphics[width=1.0\linewidth]{figures/hed_chap2_structure_prob.png}
+			\includegraphics[width=0.9\linewidth]{figures/hed_chap2_structure_prob2.png}
 			\caption{Prerequisite structure learned for \texttt{HED-chap2}.}
 			\label{fig:hed_chap2_structure}
-		\end{subfigure}~~~~
-		\begin{subfigure}[b]{0.45\linewidth}
+		\end{subfigure}\\
+		\begin{subfigure}[b]{0.9\linewidth}
 			\centering
-			\includegraphics[width=1.0\linewidth]{figures/hed_chap3_structure_prob.png}
+			\includegraphics[width=0.9\linewidth]{figures/hed_chap3_structure_prob2.png}
 			\caption{Prerequisite structure learned for \texttt{HED-chap3}.}
 			\label{fig:hed_chap3_structure}
 		\end{subfigure}%
 		\caption{Prerequisite structures constructed by BNPD for HED data sets.}
 		\label{fig:hed-structures} 
-	\end{figure*}			
+	\end{figure}			
 	
 	The Bayesian networks generated with the BNPD algorithm are illustrated in Figure~\ref{fig:hed-structures}.
 	%Figure~\ref{fig:qmatrix} represents a disconnected model generated by simply converting the input $Q$-matrix into a Bayesian network;
@@ -866,13 +915,13 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 
 	\begin{figure}[!ht]
 		\centering
-		\begin{subfigure}[b]{1.0\linewidth}
+		\begin{subfigure}[b]{0.9\linewidth}
 			\centering
 			\includegraphics[width=0.8\linewidth]{figures/hed_chap2_30_auc.eps}
 			\caption{\texttt{HED-chap2} AUC results. }
 			\label{fig:auc-chap2}
-		\end{subfigure}\\
-		\begin{subfigure}[b]{1.0\linewidth}
+		\end{subfigure}
+		\begin{subfigure}[b]{0.9\linewidth}
 			\centering
 			\includegraphics[width=0.8\linewidth]{figures/hed_chap3_33_auc.eps}
 			\caption{\texttt{HED-chap3} AUC results.}
@@ -892,7 +941,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	A paired $t$-test reveals that the AUCs of two models are statistically different with a $p$-value of $0.0022$.
 	On \texttt{HED-chap3}, BNPD model has an AUC of $0.775\pm0.007$ and the \emph{fully-connected} model has an AUC of $0.765\pm0.008$ (Figure~\ref{fig:auc-chap3}).
 	The AUCs of two models are also statistically different with a $p$-value of $0.01$.
-	The \emph{fully connected} models was outperformed by the simple prerequisite models which is much simpler, suggesting overfitting.% might have happened. 
+	The \emph{fully connected} models was outperformed by the simpler prerequisite models, suggesting overfitting.% might have happened. 
 	
 	%(Figure~\ref{fig:auc-chap2}), respectively. % and correspond to and no constraints, respectively.
 	%these models are: $0.691\pm0.011$ (\emph{majority}), $0.761\pm0.007$ (\emph{disconnected}), $0.796\pm0.006$ (\emph{chain}),  $0.804\pm0.007$ (\emph{prerequisite model with order constraint}), $0.807\pm0.006$ (\emph{prerequisite model without order constraint}), $0.794\pm0.007$ (\emph{fully connected}).
