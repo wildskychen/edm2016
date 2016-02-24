@@ -486,7 +486,7 @@ Since here we are concerned with which direction the edge goes, we simply compar
 				\includegraphics[width=1.05\linewidth]{figures/contour3.png}
 				\caption{\label{fig:contour3}}
 			\end{subfigure}						
-			\caption{Contour plot of $log(ratio)$ for various values of $P(S_2=0|S_1=0)$.\label{fig:contours} }
+			\caption{Contour plots of $log(ratio)$ against $P(S_1=0)$ and $P(S_2=1|S_1=1)$ for various values of $P(S_2=0|S_1=0)$.\label{fig:contours} }
 		\end{figure}
 
 \subsubsection{Theoretical Justification}
@@ -750,9 +750,8 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	and $TDR=\frac{\text{\# of correct relationships learned}}{\text{\# of relationships in learned model}}$.
 	The result is presented in Figure~\ref{fig:f1-parm}. It shows that BNPD significantly outperforms PARM for sample size $n\ge 500$.
 	The low $F_1$ score by PARM is caused by low $TPR$, i.e., PARM failed to discover many prerequisite relationships (data not shown).
-	It can be speculated that selecting a different set of cutoff values for PARM might improve the results.
-	However, determining these thresholds is not trivial and requires experts' intervention.
-	%Instead, BNPD does not require  
+	It is speculated that selecting a different set of cutoff values for PARM might improve the results.
+	However, determining these thresholds is not trivial and requires experts' intervention. By contrast, BNPD does not require tuning of many parameters.  
 	
 	
 		\begin{figure}[!th]
