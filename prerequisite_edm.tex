@@ -758,6 +758,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 				\centering
 					\includegraphics[width=0.7\linewidth]{figures/F1_parm.eps}
 			\end{center}
+			%\vspace{-1em}
 			\caption{Comparison of BNPD and PARM for discovering prerequisite relationships in Structure 3. The cutoff values used for PARM experiments are: $ minsup=0.125$, $minconf=0.76$, $minprob=0.9$.}
 			\label{fig:f1-parm} 
 		\end{figure}	 
@@ -823,8 +824,8 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	After filtering, we obtained two data sets, \texttt{HED-chap2} and \texttt{HED-chap3} for Chapter 2 and 3 respectively.  
 	In \texttt{HED-chap2}, six skills (book sections) are included and each skill is tested on three to eight items, for a total of 30  items.
 	In \texttt{HED-chap3}, seven skills are included and each skill has three to seven items, for a total of 33 items.
-	\texttt{HED-chap2} includes student test results for 1720 students;
-	while the \texttt{HED-chap3} has the test results for 1245 students.
+	\texttt{HED-chap2} includes student test results for 1720 students, 
+	while the \texttt{HED-chap3} has test results for 1245 students.
 	%Our synthetic data experiments suggest that a large number of training data improves the learning quality of the prerequisite structure.
 	%For this reason, we use the larger \texttt{traditional} dataset to build the prerequisite model.
 	
@@ -896,13 +897,13 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	For example, given a student's response to one or to a set of items, we can infer his knowledge status of any skill.
 	This is very useful for remedial intervention, i.e., discovering when a student is lacking background knowledge. 
 	%We now evaluate  REMIND using data  that has already been collected (\textit{post-hoc} analysis). %an evaluation of the REMIND algorithm using  . 
-	In this paper, we evaluate these models by evaluating how well the generated Bayesian networks can predict student performance
+	In this paper, we evaluate these models by evaluating how well the generated Bayesian networks predict student performance
 	%student's knowledge about a skill given his/her performance on any of the test items. 
 	%Since student's knowledge about a skill is not directly observed, 
 	%we are unable to assess the predictive performance of these models involved in this task.
 	%However, we have direct observations on students' performance on test items. 
 	%For this, we evaluate  predicting student performance
-	on a test item given performance on other items.
+	on a test item given response on other items.
 	In particular, we compute the posterior probability of a student's response to an item $I_i$ given his performance on all other items 
 	$\mathbf{I}_{-i}=\mathbf{I}\setminus\{I_i\}$, by marginalizing:
 	\begin{align}
@@ -911,7 +912,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	This can be computed efficiently using the Junction tree algorithm \cite{koller2009probabilistic}. 
 	We then do binary classification based on the posterior probability.
 	We compare the Bayesian network models generated from BNPD with four baseline predictors:
-	\begin{itemize}
+	\begin{itemize}[topsep=2pt,parsep=0pt,partopsep=0pt]
 		\item  A \emph{majority} classifier which always classifies  an instance to the majority class.
 		For example, if majority of the students get an item wrong, other students would likely get it wrong.
 		\item  A Bayesian network model in which the skill variables are \emph{disconnected}. 
@@ -1034,7 +1035,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 % REFERENCES FORMAT
 % References must be the same font size as other body text.
 \bibliographystyle{SIGCHI-Reference-Format}
-{%\small
+{\small
 	\bibliography{references}
 }	
 
