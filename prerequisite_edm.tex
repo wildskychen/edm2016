@@ -242,14 +242,14 @@ This enables more accurate modeling of the probabilistic dependence between skil
 By modeling prerequisite relations as a Bayesian network, Scheines et al. converted the problem of prerequisite structure discovery to a Bayesian network structural learning problem, and proposed an algorithm to find Bayesian network structures that fit the data \cite{scheines2014discovering}.
 However, the output from their algorithm is a class of Bayesian networks, which represent different prerequisite structures.
 They did not offer any solution to discriminate between these Bayesian networks.
-
+%Further, they validated their algorithm only on synthetic data
 
 In this paper, we propose the \emph{Bayesian Network based Prerequisite Discovery} (BNPD) pipeline to infer the prerequisite structures of skills from data. 
 The pipeline, as named,  also uses the promising Bayesian network model to represent the prerequisite relationships.
 The pipeline first uses a popular Bayesian network structure learning algorithm, 
 called Structural EM to select a class of Bayesian network models based on the distribution fitting of the data.
 It then uses constraint on the conditional probability tables to select one Bayesian network, which gives a unique prerequisite structure.
-We demonstrate the robustness of proposed approach on noisy data that contains unaccounted hidden variables or missing values.
+We demonstrate the robustness of our proposed approach on noisy data that contains unaccounted hidden variables or missing values.
 Finally, we show the discovered prerequisite structures are useful for student modeling.
 
 \section{The BNPD Pipeline}
@@ -780,7 +780,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	%Note that PARM discovered the three pairwise prerequisite relationships but BNPD output a full structure.
 	Further, BNPD also outputs the conditional probabilities associated with each skill and its direct prerequisite.
 %	which provides insights into how prerequisites impact the post-requisite probabilistically. 
-	And we clearly see that the probability of student mastering a skill increases when the student has acquired more prerequisites of the skill.
+	We clearly see that the probability of student mastering a skill increases when the student has acquired more prerequisites of the skill.
 	
 			\begin{figure}[!th]
 				\begin{center}
@@ -896,7 +896,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	BNPD not only discovers the topological relationships among skills, but also outputs a statistical model in the form of Bayesian network.
 	This statistical model can be used for inference and predictive modeling.
 	For example, given a student's response to one or to a set of items, we can infer his knowledge status of any skill.
-	This is very useful for remedial intervention, i.e., discovering when a student is lacking background knowledge. 
+	This is very useful for remedial intervention, i.e., discover when a student is lacking background knowledge. 
 	%We now evaluate  REMIND using data  that has already been collected (\textit{post-hoc} analysis). %an evaluation of the REMIND algorithm using  . 
 	In this paper, we evaluate these models by evaluating how well the generated Bayesian networks predict student performance
 	%student's knowledge about a skill given his/her performance on any of the test items. 
@@ -906,9 +906,9 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	%For this, we evaluate  predicting student performance
 	on a test item given response on other items.
 	In particular, we compute the posterior probability of a student's response to an item $I_i$ given his performance on all other items 
-	$\mathbf{I}_{-i}=\mathbf{I}\setminus\{I_i\}$, by marginalizing:
+	$\mathbf{I}_{-i}=\mathbf{I}\setminus\{I_i\}$, by marginalizing over the set of latent variables $\mathbf{S}$:
 	\begin{align}
-		P(I_i=1|\mathbf{I}_{-i}=\mathbf{i}_{-i}) =\sum_{\mathbf{S}}P(I_i, \mathbf{S}|\mathbf{I}_{-i}=\mathbf{i}_{-i}),
+		P(I_i=1|\mathbf{I}_{-i}=\mathbf{i}_{-i}) =\sum_{\mathbf{S}}P(I_i, \mathbf{S}|\mathbf{I}_{-i}=\mathbf{i}_{-i}).
 	\end{align}
 	This can be computed efficiently using the Junction tree algorithm \cite{koller2009probabilistic}. 
 	We then do binary classification based on the posterior probability.
@@ -918,7 +918,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 		For example, if majority of the students get an item wrong, other students would likely get it wrong.
 		\item  A Bayesian network model in which the skill variables are \emph{disconnected}. 
 		%This corresponds to using the $Q$-matrix  Bayesian network of Figure~\ref{fig:qmatrix}.
-		This model assumes that the skill variables are marginally independent of each other.
+		This model assumes that the skill variables are marginally independent of each other. Most existing knowledge tracing approaches make this assumption.
 		\item A Bayesian network model in which the skill variables are connected in a \emph{chain} structure, i.e., 2-2$\rightarrow$2-3$\rightarrow$2-4$\rightarrow\dots$
 		This assumes that a section (skill) only depends on the previous section.
 		In other words, a first-order Markov chain dependency structure.
@@ -954,7 +954,11 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	A paired $t$-test reveals that the AUCs of two models are statistically different with a $p$-value of $0.0022$.
 	On \texttt{HED-chap3}, BNPD model has an AUC of $0.775\pm0.007$ and the \emph{fully-connected} model has an AUC of $0.765\pm0.008$ (Figure~\ref{fig:auc-chap3}).
 	The AUCs of two models are also statistically different with a $p$-value of $0.01$.
-	The \emph{fully connected} models was outperformed by the prerequisite models, which is much simpler, suggesting overfitting.
+	The \emph{fully connected} models are outperformed by the much simpler prerequisite models, suggesting overfitting.
+	
+	Using prerequisite structure to improve student models has been demonstrated in previous works \cite{kaser2014beyond, botelho2015prediction}.
+	In their works, prerequisite structures are hand-engineered by human experts. 
+	We believe we are the first to show this with data-driven prerequisite graphs.
 	
 	%(Figure~\ref{fig:auc-chap2}), respectively. % and correspond to and no constraints, respectively.
 	%these models are: $0.691\pm0.011$ (\emph{majority}), $0.761\pm0.007$ (\emph{disconnected}), $0.796\pm0.006$ (\emph{chain}),  $0.804\pm0.007$ (\emph{prerequisite model with order constraint}), $0.807\pm0.006$ (\emph{prerequisite model without order constraint}), $0.794\pm0.007$ (\emph{fully connected}).
