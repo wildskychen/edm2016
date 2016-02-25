@@ -957,7 +957,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	The \emph{fully connected} models are outperformed by the much simpler prerequisite models, suggesting overfitting.
 	
 	Using prerequisite structure to improve student models has been demonstrated in previous works \cite{kaser2014beyond, botelho2015prediction}.
-	In their works, prerequisite structures are hand-engineered by human experts while we demonstrate this with fully data-driven prerequisite graphs.
+	In their works, the prerequisite structure are hand-engineered by human experts. But here, we demonstrate with fully data-driven prerequisite graphs.
 	
 	%(Figure~\ref{fig:auc-chap2}), respectively. % and correspond to and no constraints, respectively.
 	%these models are: $0.691\pm0.011$ (\emph{majority}), $0.761\pm0.007$ (\emph{disconnected}), $0.796\pm0.006$ (\emph{chain}),  $0.804\pm0.007$ (\emph{prerequisite model with order constraint}), $0.807\pm0.006$ (\emph{prerequisite model without order constraint}), $0.794\pm0.007$ (\emph{fully connected}).
@@ -969,10 +969,10 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	
 	\section{Conclusion and Discussion \label{sec:conclusion}}
 	Discovering prerequisite structure of skills from data is challenging since skills are latent variables in the data.
-	In this paper, we proposed BNPD, a novel pipeline for learning the prerequisite dependencies of hidden skill variables from students' response data on test items.
+	In this paper, we proposed BNPD, a novel pipeline for learning the prerequisite dependencies of latent skill variables from students' response data on test items.
 	%We converted the prerequisite discovery problem to a problem of Bayesian network structure learning with latent variables.
 	%We introduced the Structural EM 
-	We demonstrated our approach using both synthetic and real-world data under different conditions such as data contains missing values and noises.
+	We demonstrated our approach using both synthetic and real-world data under different conditions such as data contains missing values or noises.
 	We show the discovered prerequisite models are useful for student modeling and remedial intervention by demonstrating its predictive performance on unseen data.
 	%Our approach differs from prior work in several ways.
 	%First, most of existing approaches focus on estimating the pairwise prerequisite relationships \cite{brunskill2010estimating,chen2015discovering}.
@@ -1005,9 +1005,10 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	However, existing approach does not discriminate between equivalent Bayesian network structures which represent different prerequisite structures.
 	In our approach, we address this problem by using an ad-hoc strategy to refine the prerequisite model with a constraint on conditional distributions tables. 
 	This strategy is quite empirical.
-	In future, it would be wiser to combine Structural EM learning with model discrimination. 
+	In future, it would be wiser to refine the model within the Structural EM learning. 
 	For example, in Structural EM search, we can use a scoring function with an additional term that penalizes the structures that violate the CPT constraint. 
 	In such way, learning may be more accurate.
+	
 
 	%\hl{Two parts: Prerequisite discovery and student modeling with multiple kcs}
 	%\hl{For prereq work: Cite Ilya's work, French lab, Thorsten's work, may be Deep KT work}
