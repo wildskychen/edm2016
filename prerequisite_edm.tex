@@ -237,7 +237,7 @@ However, these methods are only capable of estimating the pairwise relationships
 %The determination of these thresholds requires experts' intervention. 
 
 Bayesian network is a promising tool to model skill topologies as demonstrated in \cite{kaser2014beyond}.
-Bayesian network allows the modeling of full structure of skills and can encode conditional independence relationships between the skill.
+Bayesian network allows the modeling of full structure of skills and can encode conditional independence relationships between the skills.
 This enables more accurate modeling of the probabilistic dependence between skills.
 By modeling prerequisite relations as a Bayesian network, Scheines et al. converted the problem of prerequisite structure discovery to a Bayesian network structural learning problem, and proposed an algorithm to find Bayesian network structures that fit the data \cite{scheines2014discovering}.
 However, the output from their algorithm is a class of Bayesian networks, which represent different prerequisite structures.
@@ -265,7 +265,7 @@ Bayesian networks are a flexible tool that can be used to model an entire curric
 Figure~\ref{fig:smexample} illustrates an example of a prerequisite structure modeled with a Bayesian network.
 Here, we relate four test items with the skills of addition and multiplication.
 Addition is a prerequisite of multiplication thus there is an arrow from addition to multiplication.
-Modeling prerequisites as edges in a Bayesian network allows us to frame the discovery of the prerequisite relationships as the well-studied machine learning problem of learning a DAG (with the presence of latent variables).
+Modeling prerequisites as edges in a Bayesian network allows us to frame the discovery of prerequisite relationships as the well-studied machine learning problem of learning a DAG (with the presence of latent variables).
 
 
 \begin{figure}
@@ -281,7 +281,8 @@ Modeling prerequisites as edges in a Bayesian network allows us to frame the dis
 
 Algorithm~\ref{alg:bnpd} describes the BNPD pipeline.
 Suppose we collect data from  $n$ students, answering $p$ items.
-Then, the input of BNPD is a matrix $\mathbf{D}$ with $n \times p$ dimensions, an item to skill mapping.%, and (optionally) some constraints on what content can trigger a remediation.
+Then, the input of BNPD is a matrix $\mathbf{D}$ with $n \times p$ dimensions and an item to skill mapping $Q$-matrix.
+%, and (optionally) some constraints on what content can trigger a remediation.
 Each entry in $\mathbf{D}$ encodes the performance of a student (see Table~\ref{tbl:d-matrix} for an example).
 %BNPD first constructs the prerequisite relationships among the set of skills using constraints.
 %Then, it  learns the parameters of a student model  that infers what skills a student has mastered.
@@ -327,7 +328,7 @@ We now describe the  steps of BNPD in detail.
 		\State $DE\leftarrow \{\}$
 		\For{every reversible edge $S_i - S_j$ in $RE$}
 		%\State Compute $P(S_i=1|S_j=1)$, $P(S_j=0|S_i=0)$\\~~~~~$P(S_j=1|S_i=1)$ and $P(S_i=0|S_j=0)$
-		\State $ratio\leftarrow\frac{P(S_i=1|S_j=1)\cdot P(S_j=0|S_i=0)}{P(S_j=1|S_i=1)\cdot P(S_i=0|S_j=0)}$\footnote{}
+		\State $ratio\leftarrow\frac{P(S_j=0|S_i=0)}{P(S_i=0|S_j=0)}$\footnote{}
 		\If {$ratio>1$}
 		\State $ratio^*=ratio$
 		\State $DE\leftarrow DE\cup S_i\rightarrow S_j$ 
@@ -435,21 +436,23 @@ They share the skeleton but differ in the orientation of the edge. They apparent
 To determine a unique structure, we shall determine the orientation of each reversible edge.
 For this purpose, we can use the following domain knowledge.
 
-\textbf{Knowledge 1}. If $S_1$ is a prerequisite of $S_2$, i.e., $S_1\rightarrow S_2$, then $P(S_1=1|S_2=1)= 1$ and $P(S_2=0|S_1=0)= 1$.
+\textbf{Knowledge 1}. If $S_1$ is a prerequisite of $S_2$, i.e., $S_1\rightarrow S_2$, then $S_1=0\Rightarrow S_2=0$, which is equivalent to $S_2=1\Rightarrow S_1=1$.
 
+%If $S_1$ is a prerequisite of $S_2$, i.e., $S_1\rightarrow S_2$, then $P(S_1=1|S_2=1)= 1$ and $P(S_2=0|S_1=0)= 1$.
 \textbf{Knowledge 1} says if a skill $S_1$ is the prerequisite of a skill $S_2$,
-a student must master skill $S_1$ before he masters $S_2$ and it is impossible for him to master $S_2$ if he has not mastered $S_1$.
-In other words, $S_1$ is not a prerequisite of $S_2$ if at least one of the conditions does not hold.
+a student can not master skill $S_2$ before he masters $S_1$, i.e., $P(S_2=0|S_1=0)=1$.
+In other words, $S_1$ is not a prerequisite of $S_2$ if $P(S_2=0|S_1=0)=1$ does not hold.
 This puts a constraint on the joint distribution encoded by the Bayesian network to be learned.
-We can check for any reversible edge $S_1-S_2$ in the Bayesian network, either $P(S_1=1|S_2=1)= 1$ and $P(S_2=0|S_1=0)= 1$, or $P(S_2=1|S_1=1)= 1$ and $P(S_1=0|S_2=0)= 1$. 
-If the former holds, $S_1\rightarrow S_2$; otherwise, $S_1\leftarrow S_2$.  
+%We can check for any reversible edge $S_1-S_2$ in the Bayesian network, either $P(S_2=0|S_1=0)=1$ or $P(S_1=0|S_2=0)= 1$. 
+%If the former holds, $S_1\rightarrow S_2$; otherwise, $S_1\leftarrow S_2$.\footnote{$P(S_2=0|S_1=0)=1$ and $P(S_1=0|S_2=0)= 1$ can hold simultaneously under the condition
+%that}  
 However, in real situations, it is possible for a student to master the post-requisite even he does not know the prerequisite. 
-Further, there is always noise in the data. Thus, the two conditional probabilities $P(S_1=1|S_2=1)$ and $P(S_2=0|S_1=0)$ are not exactly but close to 1.
-Thus, we use the following empirical rule: if $P(S_1=1|S_2=1)\cdot P(S_2=0|S_1=0)\ge P(S_2=1|S_1=1)\cdot P(S_1=0|S_2=0)$, we determine $S_1\rightarrow S_2$; 
+Further, there is always noise in the data. Thus, the conditional probability $P(S_2=0|S_1=0)$ is not exactly but close to 1.
+Thus, we use the following empirical rule: if $P(S_2=0|S_1=0)\ge P(S_1=0|S_2=0)$, we determine $S_1\rightarrow S_2$; 
 otherwise, we determine $S_1\leftarrow S_2$.
 Note that these conditional probabilities can be computed easily from the Bayesian network model output from Structural EM. 
-The intuition behind this is that the two probabilities $P(S_1=1|S_2=1)$ and $P(S_2=0|S_1=0)$ are certificates of the prerequisite structure $S_1\rightarrow S_2$.
-The larger of these two probabilities, the more likely the relationship $S_1\rightarrow S_2$ holds.
+The intuition behind this is that the conditional probability $P(S_2=0|S_1=0)$ can be interpreted as the strength of the prerequisite relationship $S_1\rightarrow S_2$.
+The larger of this probability, the more likely the relationship $S_1\rightarrow S_2$ holds.
 Since here we are concerned with which direction the edge goes, we simply compare the products of two probabilities and select the direction that is more probable. 
 
 	\begin{figure}[!ht]\small
@@ -497,17 +500,16 @@ We consider the simple Bayesian network in Figure~\ref{fig:equivnet1}, which has
 This model has three free conditional probability parameters: $P(S_1=0)=p$, $P(S_2=0|S_1=0)=q$, $P(S_2=1|S_1=1)=r$.
 If we observe data generated from this model, 
 can we use the rule to determine $S_1\rightarrow S_2$? %by comparing $P(S_1=1|S_2=1)\cdot P(S_2=0|S_1=0)$ and $P(S_2=1|S_1=1)\cdot P(S_1=0|S_2=0)$?
-Equivalently, we use rule $ratio=\frac{P(S_1=1|S_2=1)\cdot P(S_2=0|S_1=0)}{P(S_2=1|S_1=1)\cdot P(S_1=0|S_2=0)}\ge 1$.
+Equivalently, we use rule $ratio=\frac{P(S_2=0|S_1=0)}{P(S_1=0|S_2=0)}\ge 1$.
 Using Bayes rule and rules of probability, the rule becomes
 \begin{align}
-ratio=\frac{(1-p)(qp+1-r-p+pr)}{p[r(1-p)+p(1-q)]}\ge 1,
+ratio=\frac{pq+(1-r)(1-p)}{p}\ge 1,
 \end{align}
 which can be simplified to
 \begin{align}
-\frac{(1-p)(1-r)-p(1-q)}{p[r(1-p)+p(1-q)]}\ge 0.
+(1-p)(1-r)-p(1-q)\ge 0.
 \end{align}
-
-The rule holds only if $(1-p)(1-r)-p(1-q)\ge 0$. Thus, we can use the rule to determine $S_1\rightarrow S_2$ if $(1-p)(1-r)-p(1-q)\ge 0$.
+Thus, we can use the rule to determine $S_1\rightarrow S_2$ if $(1-p)(1-r)-p(1-q)\ge 0$.
 Since $ratio$ depends on $p$, $q$ and $r$, we study how $ratio$ changes with these parameters.
 Figure~\ref{fig:contours} shows the contour plots of $log(ratio)$ against $P(S_1=0)$ and $P(S_2=1|S_1=1)$ for three different values of $P(S_2=0|S_1=0)$.
 The white region in each contour plot is the region where the rule is not applicable. 
@@ -515,7 +517,7 @@ That is, in this region, $ratio<1$ even $S_1\rightarrow S_2$ is the true model.
 As it is showed, if $P(S_2=0|S_1=0)=q=1$, 
 the rule is always applicable no matter what values $P(S_1=0)$ and $P(S_2=1|S_1=1)$ are.
 With $P(S_2=0|S_1=0)$ decreasing, the white region becomes larger and the rule becomes more inapplicable.
-$P(S_2=0|S_1=0)$ can be interpreted as the strength of the prerequisite relationship. When the prerequisite relationship is weaker, the rule is less applicable 
+As mentioned, $P(S_2=0|S_1=0)$ can be interpreted as the strength of the prerequisite relationship. When the prerequisite relationship is weaker, the rule is less applicable 
 and using the rule to determine the prerequisite relationship is less accurate.
 
 \subsubsection{Orient All Reversible Edges}
@@ -912,6 +914,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	\end{align}
 	This can be computed efficiently using the Junction tree algorithm \cite{koller2009probabilistic}. 
 	We then do binary classification based on the posterior probability.
+	
 	We compare the Bayesian network models generated from BNPD with four baseline predictors:
 	\begin{itemize}[topsep=2pt,parsep=0pt,partopsep=0pt]
 		\item  A \emph{majority} classifier which always classifies  an instance to the majority class.
