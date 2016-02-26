@@ -91,7 +91,8 @@
 
 \begin{document}
 	
-	\title{Learning and Evaluating Prerequisite Graphs From Student Performance Data}
+	\title{ Better Prerequisite Discovery From Data: \\
+	        Implementation and Evaluation Issues}
 	%\subtitle{[Extended Abstract]
 	%\titlenote{A full version of this paper is available as
 	%\textit{Author's Guide to Preparing ACM SIG Proceedings Using
@@ -143,18 +144,25 @@
 	
 \maketitle
 \begin{abstract}
-Knowing the prerequisite structure of skills is crucial for designing curriculum, assessing mastery and for student modeling.
-These prerequisite structures are often hand-engineered by subject matter expert in a costly and time-consuming process.
+Understanding the prerequisites of skills  is useful for designing curriculum, assessing mastery and for student modeling.
+For example,  in student modeling, prerequisites can be used for remediation of student knowledge.
+%hand-engineered by subject matter experts in a costly and time-consuming process.
+Prerequisites are often encoded as graphs designed by subject matter expert in a costly and time-consuming process.
 %Traditionally, the prerequisite structures of skills are manually specified by human experts and this process is often time-consuming.
 %Automatic discovery of the prerequisite structures from educational data is intriguing yet challenging since student's mastery of skills are latent variables.
-In this paper, we introduce \emph{Bayesian Network based Prerequisite Discovery} (BNPD), 
-a novel data-driven pipeline for inferring the prerequisite structure of skill from student performance on test items. 
-By modeling the prerequisite relations as a Bayesian network, the pipeline estimates the causal structure and the probabilistic dependence among the skills 
-via a two-stage learning process. 
-In the first stage, the Structural Expectation Maximization (Structural EM) algorithm is used to select a class of Bayesian networks based on distribution fitting of student data;
-in the second stage, a single Bayesian network structure is determined by enforcing a constraint on the estimated conditional probability tables.
-We validate the proposed pipeline using simulations and by post-hoc analysis of student data.
-We show the discovered prerequisite structures can improve the student model in predicting student performance. 
+In this paper, we introduce \emph{Combined student Modelling and prerequisite Discovery} (COMMAND), 
+a novel algorithm for inferring a prerequisite graph and a student model  from data.
+%COMMAND models prerequisite relations as a Bayesian network that can be used for student modeling.
+Unlike prior work that evaluates prerequisite graphs using synthetic data, 
+we develop a methodology to evaluate prerequisite graphs with data collected from students interacting with a digital learning environment.
+Our experiments suggest that COMMAND improves on previously published approaches.
+
+% the pipeline estimates the causal structure and the probabilistic dependence among the skills 
+%via a two-stage learning process. 
+%In the first stage, the Structural Expectation Maximization (Structural EM) algorithm is used to select a class of Bayesian networks based on distribution fitting of student data;
+%in the second stage, a single Bayesian network structure is determined by enforcing a constraint on the estimated conditional probability tables.
+%We validate the proposed pipeline using simulations and by post-hoc analysis of student data.
+%We show the discovered prerequisite structures can improve the student model in predicting student performance. 
 \end{abstract}
 
 %% A category with the (minimum) three required fields
@@ -173,6 +181,7 @@ Students usually acquire skills in a meaningful sequence which starts from relat
 %but organized in a meaningful order which starts from relatively simple concepts and gradually introduces more complex ones. 
 Among these skills, some are preliminary of others such that they must be mastered before the subsequent concepts can be learned.
 For instance, students have to know how to do addition before they learn to do multiplication.
+\hl{What is a prerequisite structure?}
 In this paper, we use prerequisite structure to refer to the relationships among skills that place strict constraints on the order in which these skills can be acquired. Determining the prerequisite relations among skills is crucial for designing curriculum and for assessing mastery.
 
 Prerequisite structures of skills are often hand-engineered by subject matter experts in a costly and time-consuming process. 
@@ -181,9 +190,9 @@ the sense that experts may hold ``blind spots".
 Nowadays, large volume of educational data has been cumulated through the online tutoring systems.  
 Thus, learning prerequisite structures from educational data has drawn substantial interest from both education and data mining communities \cite{desmarais2006learned,vuong2010method, brunskill2010estimating,scheines2014discovering,chen2015discovering,piech2015deep}.
 However, inferring the prerequisite relationships between skills is still challenging since a student's knowledge of a skill is a latent variable in the data.
-In this paper, we introduce \emph{Bayesian Network based Prerequisite Discovery} (BNPD), 
+In this paper, we introduce \emph{Combined student Modelling and prerequisite Discovery} (COMMAND), 
 a novel pipeline for discovering prerequisite structure of skills from data. 
-BNPD models the prerequisite structure of the skills with a statistical model called Bayesian network.
+COMMAND models the prerequisite structure of the skills with a statistical model called Bayesian network.
 It then learns the Bayesian network through a two-stage process. 
 
 %In education, remedial interventions attempt to eliminate the specific effect of lacking a competency.
@@ -216,10 +225,12 @@ It then learns the Bayesian network through a two-stage process.
 
 \section{Previous Work}
 \label{sec:previous_work}
-Many works have investigated the discovery of prerequisite structures within domain models from data.
+
+Prior work have investigated the discovery of prerequisite structures within domain models from data.
 Many of these approaches discover the relationship of items without using latent variables.
 That is, the prerequisites do not use skill mappings, 
 and only find dependencies between items~\cite{desmarais2006learned,vuong2010method,piech2015deep}.
+\hl{What's wrong with finding dependencies between items?}
 %These include the Partial Order Knowledge Structures (POKS) algorithm \cite{desmarais2006learned, pavlik2008using} to learn the item-item relationships
 %and an approach to determine the dependency structure of units in a curriculum with the student performance observed at the unit level \cite{vuong2011method}.
   
@@ -236,7 +247,7 @@ However, these methods are only capable of estimating the pairwise relationships
 %Chen et al's approach requires manually specified thresholds to determine the existence of a prerequisite relationship.
 %The determination of these thresholds requires experts' intervention. 
 
-Bayesian network is a promising tool to model skill topologies as demonstrated in \cite{kaser2014beyond}.
+Bayesian network is a promising tool to model skill topologies as demonstrated in \cite{kaser2014beyond}. \hl{I think Bob Mislevy had one of the first seminal papers of using BNs in education}
 Bayesian network allows the modeling of full structure of skills and can encode conditional independence relationships between the skill.
 This enables more accurate modeling of the probabilistic dependence between skills.
 By modeling prerequisite relations as a Bayesian network, Scheines et al. converted the problem of prerequisite structure discovery to a Bayesian network structural learning problem, and proposed an algorithm to find Bayesian network structures that fit the data \cite{scheines2014discovering}.
@@ -244,17 +255,18 @@ However, the output from their algorithm is a class of Bayesian networks, which 
 They did not offer any solution to discriminate between these Bayesian networks.
 %Further, they validated their algorithm only on synthetic data
 
-In this paper, we propose the \emph{Bayesian Network based Prerequisite Discovery} (BNPD) pipeline to infer the prerequisite structures of skills from data. 
+In this paper, we propose the \emph{Bayesian Network based Prerequisite Discovery} (COMMAND) pipeline to infer the prerequisite structures of skills from data. 
 The pipeline, as named,  also uses the promising Bayesian network model to represent the prerequisite relationships.
 The pipeline first uses a popular Bayesian network structure learning algorithm, 
 called Structural EM to select a class of Bayesian network models based on the distribution fitting of the data.
 It then uses constraint on the conditional probability tables to select one Bayesian network, which gives a unique prerequisite structure.
 We demonstrate the robustness of our proposed approach on noisy data that contains unaccounted hidden variables or missing values.
 Finally, we show the discovered prerequisite structures are useful for student modeling.
+\hl{ Please consider adding a table \url{https://docs.google.com/document/d/1BTNJSc67-vAUkSsDBp8b1OyvClQULx42b6PyQXQ3it4/edit}}
 
-\section{The BNPD Pipeline}
+\section{The COMMAND Pipeline}
 \label{sec:pre_pipeline}
-BNPD learns the prerequisite structure of the skills using data with a statistical model called Bayesian network \cite{pearl2000causality,spirtes2001causation}.
+COMMAND learns the prerequisite structure of the skills using data with a statistical model called Bayesian network \cite{pearl2000causality,spirtes2001causation}.
 Bayesian networks are also called probabilistic graphical models  because they can  be represented visually and algebraically as a collection of nodes and edges.
 A tutorial description of Bayesian networks in education can be found elsewhere \cite{almond2015bayesian}, 
 but for now we say that they are often described with two components: 
@@ -272,24 +284,24 @@ Modeling prerequisites as edges in a Bayesian network allows us to frame the dis
 	\begin{center}
 		\includegraphics[width=1.0\linewidth]{figures/studentmodel.png}
 	\end{center}
-	\caption{A hypothetical Bayesian network learned with Algorithm~\ref{alg:bnpd}. 
+	\caption{A hypothetical Bayesian network learned with Algorithm~\ref{alg:COMMAND}. 
 		Solid edges are given by the item to skill mapping, dashed edges between skill variables are to be discovered from data.
 		The conditional probability tables are to be learned.}
 	\label{fig:smexample} 
 \end{figure} 
 
 
-Algorithm~\ref{alg:bnpd} describes the BNPD pipeline.
+Algorithm~\ref{alg:COMMAND} describes the COMMAND pipeline.
 Suppose we collect data from  $n$ students, answering $p$ items.
-Then, the input of BNPD is a matrix $\mathbf{D}$ with $n \times p$ dimensions, an item to skill mapping.%, and (optionally) some constraints on what content can trigger a remediation.
+Then, the input of COMMAND is a matrix $\mathbf{D}$ with $n \times p$ dimensions, an item to skill mapping.%, and (optionally) some constraints on what content can trigger a remediation.
 Each entry in $\mathbf{D}$ encodes the performance of a student (see Table~\ref{tbl:d-matrix} for an example).
-%BNPD first constructs the prerequisite relationships among the set of skills using constraints.
+%COMMAND first constructs the prerequisite relationships among the set of skills using constraints.
 %Then, it  learns the parameters of a student model  that infers what skills a student has mastered.
 
 
 \begin{table}[htb]%\small
 	\centering
-	\caption{Example data matrix to use with BNPD.  The performance of a student is encoded with 1 if the student answered correctly the item, and 0 otherwise. \label{tbl:d-matrix}}
+	\caption{Example data matrix to use with COMMAND.  The performance of a student is encoded with 1 if the student answered correctly the item, and 0 otherwise. \label{tbl:d-matrix}}
 	\begin{tabular}{@{}lllll@{}}
 		\toprule
 		User  & Item 1 & Item 2 & Item 3 & Item $p$ \\ \midrule
@@ -301,12 +313,12 @@ Each entry in $\mathbf{D}$ encodes the performance of a student (see Table~\ref{
 \end{table}
 
 
-BNPD relies on a popular machine learning algorithm called Structural Expectation Maximization (EM), which has not been used in educational applications. 
+COMMAND relies on a popular machine learning algorithm called Structural Expectation Maximization (EM), which has not been used in educational applications. 
 A secondary contribution of our work is introducing Structural EM for learning Bayesian network structures from educational data.
 %In particular, we modify Structural EM to be used for discovering the prerequisite relationships among skills from students' responses on test items.
 %One of the advantages of Structural EM algorithm over prior work is that it allows to combine expert beliefs into the inference process.
 %\hl{Say some advantages of Structural E-M, such that it allows expert beliefs to be engineered,  this helps so a remediation won't be content from the future, but only for the past, for example}
-We now describe the  steps of BNPD in detail.
+We now describe the  steps of COMMAND in detail.
 
 \begin{algorithm}
 	\begin{algorithmic}[1]
@@ -347,13 +359,13 @@ We now describe the  steps of BNPD in detail.
 	\AddNote{inittop}{initbot}{right}{\footnotesize Initialization}
 	\AddNote{semtop}{sembot}{right}{\footnotesize Structural EM}
 	\AddNote{lsmtop}{lsmbot}{right}{\footnotesize Orient edges}
-	\caption{The BNPD algorithm\label{alg:bnpd}}
+	\caption{The COMMAND algorithm \hl{Try to have parallelism between the algorithm sections and subtitles}  \label{alg:COMMAND}}
 \end{algorithm}
 \footnotetext{$P(S_i=a|S_j=b)$ can be computed using any Bayesian network inference algorithm such as Junction tree algorithm\cite{koller2009probabilistic}.}
 
 \subsection{Initial Bayesian Network}
 \label{sec:initial_bn}
-BNPD represents the prerequisite structure using Bayesian networks that use latent variables to represent the student knowledge of a skill, 
+COMMAND represents the prerequisite structure using Bayesian networks that use latent variables to represent the student knowledge of a skill, 
 and observed variables that represent the student performance answering items (e.g, correct or incorrect).
 We first create an initial Bayesian network that complies to the skill-to-item $Q$-matrix
 % and a set of constraints reflecting experts' belief
@@ -379,7 +391,7 @@ The Structural Expectation Maximization algorithm \cite{friedman1997learning,fri
 %We now summarize how it works.
 
 Structural EM is an iterative algorithm that  inputs a matrix $\mathbf{D}$ of student performance (see example Table~\ref{tbl:d-matrix}). %, where columns are the set of exercise items $\mathbf{I}$ and each row contains a student's performances on all these exercise items.
-Figure~\ref{fig:sem} illustrates one iteration of the Structural EM algorithm. The relevant steps are also sketched in Algorithm~\ref{alg:bnpd}. 
+Figure~\ref{fig:sem} illustrates one iteration of the Structural EM algorithm. The relevant steps are also sketched in Algorithm~\ref{alg:COMMAND}. 
 Each iteration consists of an Expectation step (\emph{E-step}) and a Maximization step (\emph{M-step}). 
 %Structural EM calculates in each iteration a candidate model structure $G$ be by iterating over the Expectation and Maximization steps.
 In \emph{E-step}, we first find the maximum likelihood estimate $\theta^*$ of the parameters 
@@ -402,7 +414,7 @@ Contrast to the conventional score-and-search algorithm, Structural EM runs EM o
 	\label{fig:sem} 
 \end{figure} 
 
-BNPD's  initialization step
+COMMAND's  initialization step
 %REMIND's implementation of prerequisite discovery we use Structural EM to learn the arcs between skills, but 
 fixes the arcs from skills to items according to the ${Q}$-matrix.
 %For this, we initialize the network as $G_0$ where skill variables and item variables are connected according to the ${Q}$-matrix, but skill variables are disconnected with each other. 
@@ -530,11 +542,11 @@ We sort the list of reversible edges by $ratio^*$ in descending order. We then o
 When one edge is oriented, the constraint is propagated to other reversible edges. In practical implementation, we use a the following strategy: 
 we first enumerate all equivalent Bayesian networks and make them a list of candidates; 
 when an edge is oriented to $S_i\rightarrow S_j$, we remove all contradicting Bayesian networks from the list.
-Eventually only one Bayesian network structure stands. This procedure is detailed in the \emph{Orient edges} section of Algorithm~\ref{alg:bnpd}.  
+Eventually only one Bayesian network structure stands. This procedure is detailed in the \emph{Orient edges} section of Algorithm~\ref{alg:COMMAND}.  
 The $EnumEquivalentDAGs(G_i)$ implements the algorithm of enumerating equivalent DAGs in \cite{chen2014finding}.
 
 \section{Evaluation}
-In \S~{\ref{sec:synthetic}, we  evaluate BNPD with simulated data  to assess the quality of the discovered prerequisite structures.
+In \S~{\ref{sec:synthetic}, we  evaluate COMMAND with simulated data  to assess the quality of the discovered prerequisite structures.
 Then, in \S~\ref{sec:real} we  use  data collected from real students.
 In all our experiment, we use the Bayesian information criterion (BIC) as the scoring function in Structural EM . 
 %The BIC score for a Bayesian network model is composed of a likelihood term and a term to penalize the model complexity.
@@ -546,7 +558,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	%various factors, including sample size, number of skill or item variables, prior knowledge, noises in the data, 
 	%affect the learning performance.
 	
-	Synthetic data allows us to study how BNPD compares to ground truth.
+	Synthetic data allows us to study how COMMAND compares to ground truth.
 	For this, we engineered three prerequisite structures (DAGs), shown in Figure~\ref{fig:syn-nets}.
 	Here, each figure represents different causal relations between the simulated latent skill variables.
 	%Note that some edges are reversible and represented as undirected edges. 
@@ -590,7 +602,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	Thus, in total we generated 120 synthetic datasets (3 DAGs x 4 sample sizes x 10 CPTs), and  report the average results.
 	
 	
-	We evaluate how BNPD can discover the true prerequisite structure using metrics designed to evaluate Bayesian networks structure discovery.
+	We evaluate how COMMAND can discover the true prerequisite structure using metrics designed to evaluate Bayesian networks structure discovery.
 	In particular, we use the $F_1$ \emph{adjacency score} and the $F_1$ \emph{orientation score}.
 	The adjacency score measure how well we can recover connections between nodes.
 	It is a weighted average of the true positive adjacency rate and the true discovery adjacency rate.
@@ -638,13 +650,13 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	We use these metrics to evaluate the effect of varying the  number of observations  of the training set (sample size) on the quality of learning the prerequisite structure.
 	We designed experiments to specifically answer the following four questions:
 	\begin{enumerate}[noitemsep,topsep=2pt,parsep=0pt,partopsep=0pt]
-		\item How does the type of items affect BNPD's ability to recover the prerequisite structure?
+		\item How does the type of items affect COMMAND's ability to recover the prerequisite structure?
 		We consider the situation where in the model each item requires only one skill and the situation where each item requires multiple skills. 
-		\item How well does BNPD perform when there is noise in the data?
+		\item How well does COMMAND perform when there is noise in the data?
 		We focus on studying noise due to the presence of unaccounted hidden variables.
-		\item How well does BNPD perform when the student performance data has missing values?
-		\item How is BNPD compared with other prerequisite discovery methods?
-		In particular, we compare BNPD to the Probabilistic Association Rules Mining (PARM) method \cite{chen2015discovering}.
+		\item How well does COMMAND perform when the student performance data has missing values?
+		\item How is COMMAND compared with other prerequisite discovery methods?
+		In particular, we compare COMMAND to the Probabilistic Association Rules Mining (PARM) method \cite{chen2015discovering}.
 	\end{enumerate}
 	We now investigate these questions.
 
@@ -682,7 +694,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	For example,  noise may occur due to hidden variables that are not explicitly modeled. 
 	%For example, students' performances in a test also depends on their individual ability (in addition to their mastery status of the required skills). 
 	%This will create noises in the data if we don't directly model the student's ability.
-	To evaluate the sensitivity of BNPD to noise, we synthesize Bayesian networks including a  \emph{StudentAbility} node that takes three possible states (low/med/high). 
+	To evaluate the sensitivity of COMMAND to noise, we synthesize Bayesian networks including a  \emph{StudentAbility} node that takes three possible states (low/med/high). 
 	In these Bayesian networks, students' performance depends not only on whether they have mastered the skill, but also on their individual ability. % (in addition to their mastery status of the required skills).
 	For simplicity, all items in the setting are single-skilled items. 
 	We first simulated data from  Bayesian networks that have a  \emph{StudentAbility} variable to generate ``noisy" data samples, and 
@@ -694,7 +706,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 				\begin{center}
 					\includegraphics[width=1.0\linewidth]{figures/studentability.png}
 				\end{center}
-				\caption{Evaluation of BNPD with noisy data} 
+				\caption{Evaluation of COMMAND with noisy data} 
 				\label{fig:stuabilitymodel}
 			\end{figure}
 			
@@ -733,25 +745,25 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	\subsubsection{In Presence of Missing Values}
 	Real-world student data often has missing values, i.e., students do not respond to all items. %Structural EM can also be applied with the missing data. 
 	%The general idea is, in the E-step, in addition to completing the values for hidden skill variables, the algorithm has to complete the missing data points.
-	To evaluate how BNPD performs on data with missing values, we generated data sets of size 1000 with varying fraction of randomly missing values ($10\%$, $20\%$, $30\%$, $40\%$, $50\%$) and used BNPD to recover the structures from these data sets. Again, the models only contains single-skilled items.  
+	To evaluate how COMMAND performs on data with missing values, we generated data sets of size 1000 with varying fraction of randomly missing values ($10\%$, $20\%$, $30\%$, $40\%$, $50\%$) and used COMMAND to recover the structures from these data sets. Again, the models only contains single-skilled items.  
 	The results are presented in Figure~\ref{fig:f1-missing}.
 	It is seen that the accuracy decreases when the fraction of missing values increases. 
-	However, BNPD is still able to recover the true structures for Structure 1 and 2 even the data contains up to $30\%$ missing values. 
+	However, COMMAND is still able to recover the true structures for Structure 1 and 2 even the data contains up to $30\%$ missing values. 
 	
 	\subsubsection{Comparison With PARM}
 	Chen and his colleagues proposed to use Probabilistic Association Rules Mining (PARM) for discovering the prerequisite relationships between skills \cite{chen2015discovering}.
 	Since PARM discovers pair-wise prerequisite relationship, instead of constructing the full structure,
-	we only compare BNPD with PARM for discovering the pair-wise relationships.
+	we only compare COMMAND with PARM for discovering the pair-wise relationships.
 	That is, we derived pair-wise prerequisite relationships from the Bayesian network structure and see how the two approaches discover these relationships.
 	Here we simulated data from Structure 3 (Figure~\ref{fig:syn-nets}(c)) (with single-skilled items), which has 21 pair-wise prerequisite relationships.
 	When experimenting with PARM, the following cutoff values were used: $ minsup=0.125$, $minconf=0.76$, $minprob=0.9$. 
 	These values have been used in the simulation experiments in \cite{chen2015discovering}.
 	The evaluation metric used is $F_1=\frac{2*TPR*TDR}{TPR+TDR}$, where $TPR=\frac{\text{\# of correct relationships learned}}{\text{\# of relationships in true model}}$
 	and $TDR=\frac{\text{\# of correct relationships learned}}{\text{\# of relationships in learned model}}$.
-	The result is presented in Figure~\ref{fig:f1-parm}. It shows that BNPD significantly outperforms PARM for sample size $n\ge 500$.
+	The result is presented in Figure~\ref{fig:f1-parm}. It shows that COMMAND significantly outperforms PARM for sample size $n\ge 500$.
 	The low $F_1$ score by PARM is caused by low $TPR$, i.e., PARM failed to discover many prerequisite relationships (data not shown).
 	It is speculated that selecting a different set of cutoff values for PARM might improve the results.
-	However, determining these thresholds is not trivial and requires experts' intervention. By contrast, BNPD does not require tuning of many parameters.  
+	However, determining these thresholds is not trivial and requires experts' intervention. By contrast, COMMAND does not require tuning of many parameters.  
 	
 	
 		\begin{figure}[!th]
@@ -760,25 +772,25 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 					\includegraphics[width=0.7\linewidth]{figures/F1_parm.eps}
 			\end{center}
 			%\vspace{-1em}
-			\caption{Comparison of BNPD and PARM for discovering prerequisite relationships in Structure 3. The cutoff values used for PARM experiments are: $ minsup=0.125$, $minconf=0.76$, $minprob=0.9$.}
+			\caption{Comparison of COMMAND and PARM for discovering prerequisite relationships in Structure 3. The cutoff values used for PARM experiments are: $ minsup=0.125$, $minconf=0.76$, $minprob=0.9$.}
 			\label{fig:f1-parm} 
 		\end{figure}	 
 	
 	\subsection{Real Student Performance Data}
 	\label{sec:real}
-	We now evaluate BNPD using two real-world student data sets.
+	We now evaluate COMMAND using two real-world student data sets.
 	
 	\subsubsection{ECPE Data Set}
 	The ECPE (Examination for the Certification of Proficiency in English) data set was collected from a test by the English language Institute
 	of the University of Michigan to examine individual cognitive skills required for understanding English language grammar \cite{templin2014hierarchical}.
 	It contains a sample of 2922 examinees who is tested by 28 items on 3 skills, i.e., \emph{morphosyntactic rules} ($S_1$), \emph{cohesive rules} ($S_2$) 
 	and \emph{lexical rules} ($S_3$). Each item requires either one or two of the three skills. 
-	The prerequisite structure output from BNPD are depicted in Figure~\ref{fig:ecpe-result}. The estimated conditional probability tables (CPT) are showed correspondingly.
+	The prerequisite structure output from COMMAND are depicted in Figure~\ref{fig:ecpe-result}. The estimated conditional probability tables (CPT) are showed correspondingly.
 	The discovered structure says \emph{lexical rules} is a prerequisite of \emph{cohesive rules} and \emph{morphosyntactic rules}, 
 	and \emph{cohesive rules} is a prerequisite of \emph{morphosyntactic rules}. 
 	This totally agrees with the findings in \cite{templin2014hierarchical} and by the PARM method in \cite{chen2015discovering}.
-	%Note that PARM discovered the three pairwise prerequisite relationships but BNPD output a full structure.
-	Further, BNPD also outputs the conditional probabilities associated with each skill and its direct prerequisite.
+	%Note that PARM discovered the three pairwise prerequisite relationships but COMMAND output a full structure.
+	Further, COMMAND also outputs the conditional probabilities associated with each skill and its direct prerequisite.
 %	which provides insights into how prerequisites impact the post-requisite probabilistically. 
 	We clearly see that the probability of student mastering a skill increases when the student has acquired more prerequisites of the skill.
 	
@@ -793,7 +805,8 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 			\end{figure}
 	
 	\subsubsection{HED Data Set}
-	We now evaluate BNPD using data collected from a commercial non-adaptive tutoring system.
+	 \hl{What is HED? ... Just call it Math.}
+	We now evaluate COMMAND using data collected from a commercial non-adaptive tutoring system.
 	The data set, named \texttt{HED}, is from anonymized students interacting with an implementation of a seventh grade math curriculum.
 	%This implementation is used by schools (we call it \texttt{traditional}),
 	The textbook items are classified in chapters, sections, and objectives; but for this paper, we only use the data from Chapter 2 and Chapter 3 of the book.
@@ -819,11 +832,11 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	%This $Q$-matrix does not convey any information on how or when to offer a remedial intervention to a learner.
 	%For this, we investigate the extent on which REMIND can discover a remediation model using student performance data.
 	For each chapter, We process the data set to find a subset of  items and students that does not have missing values.
-	This is,  the dataset we use in BNPD has students responding to \textit{all} of the  items.
+	This is,  the dataset we use in COMMAND has students responding to \textit{all} of the  items.
 	
 	%Table~\ref{tab:seclistdata} lists the twelve skills (book sections) remaining after filtering.
-	After filtering, we obtained two data sets, \texttt{HED-chap2} and \texttt{HED-chap3} for Chapter 2 and 3 respectively.  
-	In \texttt{HED-chap2}, six skills (book sections) are included and each skill is tested on three to eight items, for a total of 30  items.
+	After filtering, we obtained two data sets, \texttt{HED-chap2} and \texttt{HED-chap3} for Chapter 2 and 3 respectively. 
+	In \texttt{HED-chap2}, six skills \hl{no need to talk about book sections} (book sections) are included and each skill is tested on three to eight items, for a total of 30  items.
 	In \texttt{HED-chap3}, seven skills are included and each skill has three to seven items, for a total of 33 items.
 	\texttt{HED-chap2} includes student test results for 1720 students, 
 	while the \texttt{HED-chap3} has test results for 1245 students.
@@ -831,7 +844,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	%For this reason, we use the larger \texttt{traditional} dataset to build the prerequisite model.
 	
 	For simplicity we use binary variables to encode  performance data (i.e, correct or incorrect) and skill variables  (i.e., mastery or not mastery).
-	This simplification is not necessary,  as BNPD is able to use  discrete variables with arbitrary number of states.
+	This simplification is not necessary,  as COMMAND is able to use  discrete variables with arbitrary number of states.
 	
 	\paragraph{Prerequisite Structure Discovery}
 	\label{sec:prerequisite_results}
@@ -841,7 +854,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 %					\centering
 %					\includegraphics[width=1.0\linewidth]{figures/hed_structures.png}
 %				\end{center}
-%				\caption{Prerequisite structures constructed by BNPD.}
+%				\caption{Prerequisite structures constructed by COMMAND.}
 %				\label{fig:hed-structures} 
 %			\end{figure*}
 
@@ -859,11 +872,11 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 			\caption{Prerequisite structure learned for \texttt{HED-chap3}.}
 			\label{fig:hed_chap3_structure}
 		\end{subfigure}%
-		\caption{Prerequisite structures constructed by BNPD for HED data sets.}
+		\caption{Prerequisite structures constructed by COMMAND for HED data sets.}
 		\label{fig:hed-structures} 
 	\end{figure}			
 	
-	The Bayesian networks generated with the BNPD algorithm are illustrated in Figure~\ref{fig:hed-structures}.
+	The Bayesian networks generated with the COMMAND algorithm are illustrated in Figure~\ref{fig:hed-structures}.
 	%Figure~\ref{fig:qmatrix} represents a disconnected model generated by simply converting the input $Q$-matrix into a Bayesian network;
 	%this corresponds to the output of the initialization step of Algorithm~\ref{alg:remind}.
 	%Figures~\ref{fig:constraint} and~\ref{fig:noconstraint} represent the prerequisite structures discovered by using domain knowledge or not.
@@ -876,7 +889,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	We also ran PARM approach to learn pair-wise prerequisite relationships from these data sets. Given $minsup=0.1$, $minconf=0.75$ and $minprob=0.9$,
 	$2\_5\rightarrow 2\_6$ and $2\_5\rightarrow 2\_7$ are discovered for \texttt{HED-chap2},
 	$3\_1\rightarrow 3\_3$ and $3\_2\rightarrow 3\_3$ are discovered for \texttt{HED-chap3}.
-	These relationships are subset of the set of relationships discovered by BNPD. 
+	These relationships are subset of the set of relationships discovered by COMMAND. 
 	%The inferred prerequisite structures are intuitively plausible, 
 	%as the topological order of the sections are consistent with the book structure, which reflects subject matter experts's belief on the prerequisite relationships 
 	%between the sections of each book chapter. 
@@ -893,7 +906,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	
 	\paragraph{Predictive Performance of Prerequisite Models}
 	\label{sec:predictive_performance}
-	BNPD not only discovers the topological relationships among skills, but also outputs a statistical model in the form of Bayesian network.
+	COMMAND not only discovers the topological relationships among skills, but also outputs a statistical model in the form of Bayesian network.
 	This statistical model can be used for inference and predictive modeling.
 	For example, given a student's response to one or to a set of items, we can infer his knowledge status of any skill.
 	This is very useful for remedial intervention, i.e., discover when a student is lacking background knowledge. 
@@ -912,7 +925,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	\end{align}
 	This can be computed efficiently using the Junction tree algorithm \cite{koller2009probabilistic}. 
 	We then do binary classification based on the posterior probability.
-	We compare the Bayesian network models generated from BNPD with four baseline predictors:
+	We compare the Bayesian network models generated from COMMAND with four baseline predictors:
 	\begin{itemize}[topsep=2pt,parsep=0pt,partopsep=0pt]
 		\item  A \emph{majority} classifier which always classifies  an instance to the majority class.
 		For example, if majority of the students get an item wrong, other students would likely get it wrong.
@@ -940,7 +953,9 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 			\caption{\texttt{HED-chap3} AUC results.}
 			\label{fig:auc-chap3}
 		\end{subfigure}%
-		\caption{Comparison of AUC of five models to predict student performance on test items. The results are from 10 fold cross-validation.\label{fig:aucs}}
+		\caption{Comparison of AUC of five models to predict student performance on test items. The results are from 10 fold cross-validation.\label{fig:aucs}
+		\hl{I still think we need to compare to the French group.  Why not learning a BN with the prerequisite they learn? The reviewers complained about this before}
+		}
 	\end{figure} 	
 	
 	The parameters of these baseline Bayesian network predictors are estimated from the data.
@@ -948,11 +963,11 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	calculated from 10-fold cross-validation.
 	Results are presented in Figure~\ref{fig:aucs}. 
 	The error bars show the $95\%$ confidence intervals calculated from the cross-validation.
-	On both \texttt{HED-chap2} and \texttt{HED-chap3} data sets, the BNPD models outperform the other four models.
+	On both \texttt{HED-chap2} and \texttt{HED-chap3} data sets, the COMMAND models outperform the other four models.
 	The \emph{fully connected} models are the second best performing models.
-	On \texttt{HED-chap2}, BNPD model has an AUC of $0.803\pm0.008$ and the \emph{fully-connected} model has an AUC of $0.791\pm0.007$ (Figure~\ref{fig:auc-chap2}).
+	On \texttt{HED-chap2}, COMMAND model has an AUC of $0.803\pm0.008$ and the \emph{fully-connected} model has an AUC of $0.791\pm0.007$ (Figure~\ref{fig:auc-chap2}).
 	A paired $t$-test reveals that the AUCs of two models are statistically different with a $p$-value of $0.0022$.
-	On \texttt{HED-chap3}, BNPD model has an AUC of $0.775\pm0.007$ and the \emph{fully-connected} model has an AUC of $0.765\pm0.008$ (Figure~\ref{fig:auc-chap3}).
+	On \texttt{HED-chap3}, COMMAND model has an AUC of $0.775\pm0.007$ and the \emph{fully-connected} model has an AUC of $0.765\pm0.008$ (Figure~\ref{fig:auc-chap3}).
 	The AUCs of two models are also statistically different with a $p$-value of $0.01$.
 	The \emph{fully connected} models are outperformed by the much simpler prerequisite models, suggesting overfitting.
 	
@@ -969,7 +984,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	
 	\section{Conclusion and Discussion \label{sec:conclusion}}
 	Discovering prerequisite structure of skills from data is challenging since skills are latent variables in the data.
-	In this paper, we proposed BNPD, a novel pipeline for learning the prerequisite dependencies of latent skill variables from students' response data on test items.
+	In this paper, we proposed COMMAND, a novel pipeline for learning the prerequisite dependencies of latent skill variables from students' response data on test items.
 	%We converted the prerequisite discovery problem to a problem of Bayesian network structure learning with latent variables.
 	%We introduced the Structural EM 
 	We demonstrated our approach using both synthetic and real-world data under different conditions such as data contains missing values or noises.
@@ -995,11 +1010,11 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 %	Our approach has many advantages over prior work. First, it does not require tuning of many parameters.
 %	For example, prior work~\cite{brunskill2010estimating} assumes domain parameters called \emph{guess probability} and \emph{slip probability}
 %	%\footnote{The \emph{guess probability} is the probability of answering the correctly given the student does not know the skill; the \emph{slip probability} is the probability of answering incorrectly given the student knows the skill} 
-%	are provided for each pair of item and skill while BNPD learns these parameters automatically.
+%	are provided for each pair of item and skill while COMMAND learns these parameters automatically.
 %	Similarly, more recent approaches~\cite{chen2015discovering} require manually specified thresholds to determine the existence of a prerequisite relationship.
 %	The determination of these thresholds requires experts' intervention. 
 %	By contrast, the only required input of our algorithm is the observed student performance.
-%	Further, these methods discover pair-wise relationships while BNPD tries to optimize the full structure of the model.
+%	Further, these methods discover pair-wise relationships while COMMAND tries to optimize the full structure of the model.
 	
 	Studying prerequisite structure discovery in the context of Bayesian network structure learning is not new \cite{scheines2014discovering}.
 	However, existing approach does not discriminate between equivalent Bayesian network structures which represent different prerequisite structures.
