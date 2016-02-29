@@ -144,7 +144,7 @@
 	
 \maketitle
 \begin{abstract}
-Understanding the prerequisites of skills  is useful for designing curriculum, assessing mastery and for student modeling.
+Understanding the prerequisites of skills is useful for designing curriculum, assessing mastery and for student modeling.
 For example,  in student modeling, prerequisites can be used for remediation of student knowledge.
 %hand-engineered by subject matter experts in a costly and time-consuming process.
 Prerequisites are often encoded as graphs designed by subject matter expert in a costly and time-consuming process.
@@ -189,7 +189,7 @@ Moreover, the prerequisite structures specified by the experts are seldom tested
 the sense that experts may hold ``blind spots".
 Nowadays, large volume of educational data has been cumulated through the online tutoring systems.  
 Thus, learning prerequisite structures from educational data has drawn substantial interest from both education and data mining communities \cite{desmarais2006learned,vuong2010method, brunskill2010estimating,scheines2014discovering,chen2015discovering,piech2015deep}.
-However, inferring the prerequisite relationships between skills is still challenging since a student's knowledge of a skill is a latent variable in the data.
+However, inferring the prerequisite relationships between skills is still challenging since a student's knowledge of a skill is an unobserved latent variable in the data.
 In this paper, we introduce \emph{Combined student Modelling and prerequisite Discovery} (COMMAND), 
 a novel pipeline for discovering prerequisite structure of skills from data. 
 COMMAND models the prerequisite structure of the skills with a statistical model called Bayesian network.
@@ -226,7 +226,7 @@ It then learns the Bayesian network through a two-stage process.
 \section{Previous Work}
 \label{sec:previous_work}
 
-Prior work have investigated the discovery of prerequisite structures within domain models from data.
+Prior work have investigated the discovery of prerequisite structures from data.
 Many of these approaches discover the relationship of items without using latent variables.
 That is, the prerequisites do not use skill mappings, 
 and only find dependencies between items~\cite{desmarais2006learned,vuong2010method,piech2015deep}.
@@ -235,7 +235,7 @@ and only find dependencies between items~\cite{desmarais2006learned,vuong2010met
 %and an approach to determine the dependency structure of units in a curriculum with the student performance observed at the unit level \cite{vuong2011method}.
   
 %To learn the relationships among skills from data where a student's knowledge of a skill is latent, 
-To account for hidden skills, a mapping of items to skills (often called a $Q$-matrix) is used.
+To account for latent skills, a mapping of items to skills (often called a $Q$-matrix) is used.
 In this setting, students are tested on items-questions, problems, parts of questions- 
 each of which requires one or multiple background skills.
 To estimate the relationship between two background skills, 
@@ -247,26 +247,29 @@ However, these methods are only capable of estimating the pairwise relationships
 %Chen et al's approach requires manually specified thresholds to determine the existence of a prerequisite relationship.
 %The determination of these thresholds requires experts' intervention. 
 
-Bayesian network is a promising tool to model skill topologies as demonstrated in \cite{kaser2014beyond}. \hl{I think Bob Mislevy had one of the first seminal papers of using BNs in education}
-Bayesian network allows the modeling of full structure of skills and can encode conditional independence relationships between the skill.
+Bayesian network is a promising tool to model skill topologies as demonstrated in \cite{mislevy2000bayes,kaser2014beyond}. 
+%\hl{I think Bob Mislevy had one of the first seminal papers of using BNs in education}
+Bayesian network allows the modeling of full structure of skills and can encode conditional independence relationships between the skills.
 This enables more accurate modeling of the probabilistic dependence between skills.
 By modeling prerequisite relations as a Bayesian network, Scheines et al. converted the problem of prerequisite structure discovery to a Bayesian network structural learning problem, and proposed an algorithm to find Bayesian network structures that fit the data \cite{scheines2014discovering}.
-However, the output from their algorithm is a class of Bayesian networks, which represent different prerequisite structures.
-They did not offer any solution to discriminate between these Bayesian networks.
+However, the output from their algorithm is a class of Bayesian networks, which are equivalent in representing a probability distribution.
+These \emph{equivalent} Bayesian networks have the same skeleton but differ in the orientation of some edges, thus represent very different prerequisite structures.
+Scheines and his colleagues did not offer any to discriminate between these Bayesian networks.
 %Further, they validated their algorithm only on synthetic data
 
-In this paper, we propose the \emph{Bayesian Network based Prerequisite Discovery} (COMMAND) pipeline to infer the prerequisite structures of skills from data. 
-The pipeline, as named,  also uses the promising Bayesian network model to represent the prerequisite relationships.
+In this paper, we propose the \emph{Combined student Modelling and prerequisite Discovery} (COMMAND) pipeline 
+to infer the prerequisite structures of skills and a student model from data. 
+The pipeline also uses the promising Bayesian network model to represent the prerequisite relationships.
 The pipeline first uses a popular Bayesian network structure learning algorithm, 
 called Structural EM to select a class of Bayesian network models based on the distribution fitting of the data.
 It then uses constraint on the conditional probability tables to select one Bayesian network, which gives a unique prerequisite structure.
 We demonstrate the robustness of our proposed approach on noisy data that contains unaccounted hidden variables or missing values.
 Finally, we show the discovered prerequisite structures are useful for student modeling.
-\hl{ Please consider adding a table \url{https://docs.google.com/document/d/1BTNJSc67-vAUkSsDBp8b1OyvClQULx42b6PyQXQ3it4/edit}}
+%\hl{ Please consider adding a table \url{https://docs.google.com/document/d/1BTNJSc67-vAUkSsDBp8b1OyvClQULx42b6PyQXQ3it4/edit}}
 
 \section{The COMMAND Pipeline}
 \label{sec:pre_pipeline}
-COMMAND learns the prerequisite structure of the skills using data with a statistical model called Bayesian network \cite{pearl2000causality,spirtes2001causation}.
+COMMAND learns the prerequisite structure of the skills from data with a statistical model called Bayesian network \cite{pearl2000causality,spirtes2001causation}.
 Bayesian networks are also called probabilistic graphical models  because they can  be represented visually and algebraically as a collection of nodes and edges.
 A tutorial description of Bayesian networks in education can be found elsewhere \cite{almond2015bayesian}, 
 but for now we say that they are often described with two components: 
@@ -293,7 +296,8 @@ Modeling prerequisites as edges in a Bayesian network allows us to frame the dis
 
 Algorithm~\ref{alg:COMMAND} describes the COMMAND pipeline.
 Suppose we collect data from  $n$ students, answering $p$ items.
-Then, the input of COMMAND is a matrix $\mathbf{D}$ with $n \times p$ dimensions, an item to skill mapping.%, and (optionally) some constraints on what content can trigger a remediation.
+Then, the input of COMMAND is a matrix $\mathbf{D}$ with $n \times p$ dimensions and an item to skill mapping $Q$-matrix.
+%, and (optionally) some constraints on what content can trigger a remediation.
 Each entry in $\mathbf{D}$ encodes the performance of a student (see Table~\ref{tbl:d-matrix} for an example).
 %COMMAND first constructs the prerequisite relationships among the set of skills using constraints.
 %Then, it  learns the parameters of a student model  that infers what skills a student has mastered.
@@ -340,7 +344,7 @@ We now describe the  steps of COMMAND in detail.
 		\For{every reversible edge $S_i - S_j$ in $RE$}
 		%\State Compute $P(S_i=1|S_j=1)$, $P(S_j=0|S_i=0)$\\~~~~~$P(S_j=1|S_i=1)$ and $P(S_i=0|S_j=0)$
 		\State $ratio\leftarrow\frac{P(S_i=1|S_j=1)\cdot P(S_j=0|S_i=0)}{P(S_j=1|S_i=1)\cdot P(S_i=0|S_j=0)}$\footnote{}
-		\If {$ratio>1$}
+		\If {$ratio\ge 1$}
 		\State $ratio^*=ratio$
 		\State $DE\leftarrow DE\cup S_i\rightarrow S_j$ 
 		\Else
@@ -358,8 +362,8 @@ We now describe the  steps of COMMAND in detail.
 	\end{algorithmic}
 	\AddNote{inittop}{initbot}{right}{\footnotesize Initialization}
 	\AddNote{semtop}{sembot}{right}{\footnotesize Structural EM}
-	\AddNote{lsmtop}{lsmbot}{right}{\footnotesize Orient edges}
-	\caption{The COMMAND algorithm \hl{Try to have parallelism between the algorithm sections and subtitles}  \label{alg:COMMAND}}
+	\AddNote{lsmtop}{lsmbot}{right}{\footnotesize Discriminate between equivalent BNs}
+	\caption{The COMMAND algorithm  \label{alg:COMMAND}}
 \end{algorithm}
 \footnotetext{$P(S_i=a|S_j=b)$ can be computed using any Bayesian network inference algorithm such as Junction tree algorithm\cite{koller2009probabilistic}.}
 
@@ -404,7 +408,15 @@ exhaustive search is intractable and local search algorithms, such as greedy hil
 The \emph{E-step} and \emph{M-step} interleave and iterate until some stop criteria is met, e.g., the scoring function does not change significantly.
 Contrast to the conventional score-and-search algorithm, Structural EM runs EM only on one structure in each iteration, thus is computationally more efficient.
 
-\begin{figure}
+COMMAND's  initialization step
+%REMIND's implementation of prerequisite discovery we use Structural EM to learn the arcs between skills, but 
+fixes the arcs from skills to items according to the ${Q}$-matrix.
+%For this, we initialize the network as $G_0$ where skill variables and item variables are connected according to the ${Q}$-matrix, but skill variables are disconnected with each other. 
+In  the \emph{M-step} of our Structural EM implementation we only consider the candidate structures that comply with the ${Q}$-matrix.
+%We believe that this reduction of the space of candidate models improves efficiency. %makes the Structural EM more efficient.
+
+
+\begin{figure}%[!ht]
 	\begin{center}
 		%\framebox[4.0in]{$\;$}
 		%\fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
@@ -413,13 +425,6 @@ Contrast to the conventional score-and-search algorithm, Structural EM runs EM o
 	\caption{\small An illustration of the Structure EM algorithm to discover the structure of the latent variables.}
 	\label{fig:sem} 
 \end{figure} 
-
-COMMAND's  initialization step
-%REMIND's implementation of prerequisite discovery we use Structural EM to learn the arcs between skills, but 
-fixes the arcs from skills to items according to the ${Q}$-matrix.
-%For this, we initialize the network as $G_0$ where skill variables and item variables are connected according to the ${Q}$-matrix, but skill variables are disconnected with each other. 
-In  the \emph{M-step} of our Structural EM implementation we only consider the candidate structures that comply with the ${Q}$-matrix.
-%We believe that this reduction of the space of candidate models improves efficiency. %makes the Structural EM more efficient.
 
 An advantage of using Structural EM to discover the prerequisite relationship of skills, is that it is easily extensible to incorporate domain knowledge.
 For example, we can  place constraints on the output structure to force or to disallow a skill to be a prerequisite from another other skill.
@@ -804,10 +809,10 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 				\label{fig:ecpe-result} 
 			\end{figure}
 	
-	\subsubsection{HED Data Set}
-	 \hl{What is HED? ... Just call it Math.}
+	\subsubsection{Math Data Set}
+	 %\hl{What is HED? ... Just call it Math.}
 	We now evaluate COMMAND using data collected from a commercial non-adaptive tutoring system.
-	The data set, named \texttt{HED}, is from anonymized students interacting with an implementation of a seventh grade math curriculum.
+	The data set, named \texttt{Math}, is from anonymized students interacting with an implementation of a seventh grade math curriculum.
 	%This implementation is used by schools (we call it \texttt{traditional}),
 	The textbook items are classified in chapters, sections, and objectives; but for this paper, we only use the data from Chapter 2 and Chapter 3 of the book.
 	We use performance data while students solve test items. That is, students are tested on the items after they have been taught all relevant skills.
@@ -835,11 +840,11 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	This is,  the dataset we use in COMMAND has students responding to \textit{all} of the  items.
 	
 	%Table~\ref{tab:seclistdata} lists the twelve skills (book sections) remaining after filtering.
-	After filtering, we obtained two data sets, \texttt{HED-chap2} and \texttt{HED-chap3} for Chapter 2 and 3 respectively. 
-	In \texttt{HED-chap2}, six skills \hl{no need to talk about book sections} (book sections) are included and each skill is tested on three to eight items, for a total of 30  items.
-	In \texttt{HED-chap3}, seven skills are included and each skill has three to seven items, for a total of 33 items.
-	\texttt{HED-chap2} includes student test results for 1720 students, 
-	while the \texttt{HED-chap3} has test results for 1245 students.
+	After filtering, we obtained two data sets, \texttt{Math-chap2} and \texttt{Math-chap3} for Chapter 2 and 3 respectively. 
+	In \texttt{Math-chap2}, six skills are included and each skill is tested on three to eight items, for a total of 30  items.
+	In \texttt{Math-chap3}, seven skills are included and each skill has three to seven items, for a total of 33 items.
+	\texttt{Math-chap2} includes student test results for 1720 students, 
+	while the \texttt{Math-chap3} has test results for 1245 students.
 	%Our synthetic data experiments suggest that a large number of training data improves the learning quality of the prerequisite structure.
 	%For this reason, we use the larger \texttt{traditional} dataset to build the prerequisite model.
 	
@@ -863,13 +868,13 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 		\begin{subfigure}[b]{0.9\linewidth}
 			\centering
 			\includegraphics[width=0.9\linewidth]{figures/hed_chap2_structure_prob2.png}
-			\caption{Prerequisite structure learned for \texttt{HED-chap2}.}
+			\caption{Prerequisite structure learned for \texttt{Math-chap2}.}
 			\label{fig:hed_chap2_structure}
 		\end{subfigure}\\
 		\begin{subfigure}[b]{0.9\linewidth}
 			\centering
 			\includegraphics[width=0.9\linewidth]{figures/hed_chap3_structure_prob2.png}
-			\caption{Prerequisite structure learned for \texttt{HED-chap3}.}
+			\caption{Prerequisite structure learned for \texttt{Math-chap3}.}
 			\label{fig:hed_chap3_structure}
 		\end{subfigure}%
 		\caption{Prerequisite structures constructed by COMMAND for HED data sets.}
@@ -887,8 +892,8 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	Our observation is that the topological order of the sections in both structures are fully consistent with the book ordering heuristic,
 	This shows an agreement between our fully data-driven method and human experts.
 	We also ran PARM approach to learn pair-wise prerequisite relationships from these data sets. Given $minsup=0.1$, $minconf=0.75$ and $minprob=0.9$,
-	$2\_5\rightarrow 2\_6$ and $2\_5\rightarrow 2\_7$ are discovered for \texttt{HED-chap2},
-	$3\_1\rightarrow 3\_3$ and $3\_2\rightarrow 3\_3$ are discovered for \texttt{HED-chap3}.
+	$2\_5\rightarrow 2\_6$ and $2\_5\rightarrow 2\_7$ are discovered for \texttt{Math-chap2},
+	$3\_1\rightarrow 3\_3$ and $3\_2\rightarrow 3\_3$ are discovered for \texttt{Math-chap3}.
 	These relationships are subset of the set of relationships discovered by COMMAND. 
 	%The inferred prerequisite structures are intuitively plausible, 
 	%as the topological order of the sections are consistent with the book structure, which reflects subject matter experts's belief on the prerequisite relationships 
@@ -954,7 +959,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 			\label{fig:auc-chap3}
 		\end{subfigure}%
 		\caption{Comparison of AUC of five models to predict student performance on test items. The results are from 10 fold cross-validation.\label{fig:aucs}
-		\hl{I still think we need to compare to the French group.  Why not learning a BN with the prerequisite they learn? The reviewers complained about this before}
+		%\hl{I still think we need to compare to the French group.  Why not learning a BN with the prerequisite they learn? The reviewers complained about this before}
 		}
 	\end{figure} 	
 	
@@ -963,11 +968,11 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	calculated from 10-fold cross-validation.
 	Results are presented in Figure~\ref{fig:aucs}. 
 	The error bars show the $95\%$ confidence intervals calculated from the cross-validation.
-	On both \texttt{HED-chap2} and \texttt{HED-chap3} data sets, the COMMAND models outperform the other four models.
+	On both \texttt{Math-chap2} and \texttt{Math-chap3} data sets, the COMMAND models outperform the other four models.
 	The \emph{fully connected} models are the second best performing models.
-	On \texttt{HED-chap2}, COMMAND model has an AUC of $0.803\pm0.008$ and the \emph{fully-connected} model has an AUC of $0.791\pm0.007$ (Figure~\ref{fig:auc-chap2}).
+	On \texttt{Math-chap2}, COMMAND model has an AUC of $0.803\pm0.008$ and the \emph{fully-connected} model has an AUC of $0.791\pm0.007$ (Figure~\ref{fig:auc-chap2}).
 	A paired $t$-test reveals that the AUCs of two models are statistically different with a $p$-value of $0.0022$.
-	On \texttt{HED-chap3}, COMMAND model has an AUC of $0.775\pm0.007$ and the \emph{fully-connected} model has an AUC of $0.765\pm0.008$ (Figure~\ref{fig:auc-chap3}).
+	On \texttt{Math-chap3}, COMMAND model has an AUC of $0.775\pm0.007$ and the \emph{fully-connected} model has an AUC of $0.765\pm0.008$ (Figure~\ref{fig:auc-chap3}).
 	The AUCs of two models are also statistically different with a $p$-value of $0.01$.
 	The \emph{fully connected} models are outperformed by the much simpler prerequisite models, suggesting overfitting.
 	
