@@ -148,15 +148,19 @@ Understanding the prerequisites of skills is useful for designing curriculum, as
 For example,  in student modeling, prerequisites can be used for remediation of student knowledge.
 %hand-engineered by subject matter experts in a costly and time-consuming process.
 Prerequisites are often encoded as graphs designed by subject matter expert in a costly and time-consuming process.
-%Traditionally, the prerequisite structures of skills are manually specified by human experts and this process is often time-consuming.
-%Automatic discovery of the prerequisite structures from educational data is intriguing yet challenging since student's mastery of skills are latent variables.
 In this paper, we introduce \emph{Combined student Modelling and prerequisite Discovery} (COMMAND), 
-a novel algorithm for inferring a prerequisite graph and a student model  from data.
+a novel pipeline for inferring a prerequisite graph and a student model  from data.
 %COMMAND models prerequisite relations as a Bayesian network that can be used for student modeling.
-Unlike prior work that evaluates prerequisite graphs using synthetic data, 
-we develop a methodology to evaluate prerequisite graphs with data collected from students interacting with a digital learning environment.
+%Unlike prior work that evaluates prerequisite graphs using synthetic data, 
+%we develop a methodology to evaluate prerequisite graphs with data collected from students interacting with a digital learning environment.
+%Our experiments suggest that COMMAND improves on previously published approaches.
+By modeling the prerequisite relations as a Bayesian network, COMMAND estimates the causal structure and the probabilistic dependence among the skills 
+via a two-stage learning process. 
+In the first stage, the Structural Expectation Maximization (Structural EM) algorithm is used to select a class of Bayesian networks based on distribution fitting of student data;
+in the second stage, a single Bayesian network structure is determined 
+based on the domain knowledge that it is unlikely for a student to master a skill before mastering its prerequisite skills. 
+We validate the proposed pipeline using simulations and real-world student data.
 Our experiments suggest that COMMAND improves on previously published approaches.
-
 % the pipeline estimates the causal structure and the probabilistic dependence among the skills 
 %via a two-stage learning process. 
 %In the first stage, the Structural Expectation Maximization (Structural EM) algorithm is used to select a class of Bayesian networks based on distribution fitting of student data;
@@ -272,6 +276,16 @@ We demonstrate the robustness of our proposed approach on noisy data that contai
 Finally, we show the discovered prerequisite models are useful for student modeling.
 %\hl{ Please consider adding a table \url{https://docs.google.com/document/d/1BTNJSc67-vAUkSsDBp8b1OyvClQULx42b6PyQXQ3it4/edit}}
 
+\begin{figure}
+	\begin{center}
+		\includegraphics[width=.90\linewidth]{figures/studentmodel.png}
+	\end{center}
+	\caption{A hypothetical Bayesian network. %learned with Algorithm~\ref{alg:COMMAND}. 
+		Solid edges are given by item to skill mapping, dashed edges between skill variables are to be discovered from data.
+		The conditional probability tables are to be learned.}
+	\label{fig:smexample} 
+\end{figure} 
+
 \section{The COMMAND Pipeline}
 \label{sec:pre_pipeline}
 COMMAND learns the prerequisite structure of the skills from data with a statistical model called Bayesian network \cite{pearl2000causality,spirtes2001causation}.
@@ -287,17 +301,6 @@ Here, we relate four test items with the skills of addition and multiplication.
 Addition is a prerequisite of multiplication thus there is an arrow from addition to multiplication.
 Modeling prerequisites as edges in a Bayesian network allows us to frame the discovery of the prerequisite relationships as the well-studied machine learning problem of
 learning a Bayesian network from data (with the presence of latent variables).
-
-
-\begin{figure}
-	\begin{center}
-		\includegraphics[width=.90\linewidth]{figures/studentmodel.png}
-	\end{center}
-	\caption{A hypothetical Bayesian network. %learned with Algorithm~\ref{alg:COMMAND}. 
-		Solid edges are given by item to skill mapping, dashed edges between skill variables are to be discovered from data.
-		The conditional probability tables are to be learned.}
-	\label{fig:smexample} 
-\end{figure} 
 
 
 Algorithm~\ref{alg:COMMAND} describes the COMMAND pipeline.
@@ -454,21 +457,41 @@ They share the skeleton but differ in the orientation of the edge (we will call 
 To determine a unique structure, we shall determine the orientation of each reversible edge.
 For this purpose, we can use the following domain knowledge.
 
-\textbf{Knowledge 1}. If $S_1$ is a prerequisite of $S_2$, i.e., $S_1\rightarrow S_2$, then $P(S_1=1|S_2=1)= 1$ and $P(S_2=0|S_1=0)= 1$.
+%\textbf{Knowledge 1}. If $S_1$ is a prerequisite of $S_2$, i.e., $S_1\rightarrow S_2$, then $P(S_1=1|S_2=1)= 1$ and $P(S_2=0|S_1=0)= 1$.
+%
+%\textbf{Knowledge 1} says if a skill $S_1$ is the prerequisite of a skill $S_2$,
+%a student must master skill $S_1$ before he masters $S_2$ and it is impossible for him to master $S_2$ if he has not mastered $S_1$.
+%In other words, $S_1$ is not a prerequisite of $S_2$ if at least one of the conditions does not hold.
+%This puts a constraint on the joint distribution encoded by the Bayesian network to be learned.
+%We can check for any reversible edge $S_1-S_2$ in the Bayesian network, either $P(S_1=1|S_2=1)= 1$ and $P(S_2=0|S_1=0)= 1$, or $P(S_2=1|S_1=1)= 1$ and $P(S_1=0|S_2=0)= 1$. 
+%If the former holds, $S_1\rightarrow S_2$; otherwise, $S_1\leftarrow S_2$.  
+%However, in real situations, it is possible for a student to master the post-requisite even he does not know the prerequisite. 
+%Further, there is always noise in the data. Thus, the two conditional probabilities $P(S_1=1|S_2=1)$ and $P(S_2=0|S_1=0)$ are not exactly but close to 1.
+%Thus, we use the following empirical rule: if $P(S_1=1|S_2=1)\cdot P(S_2=0|S_1=0)\ge P(S_2=1|S_1=1)\cdot P(S_1=0|S_2=0)$, we determine $S_1\rightarrow S_2$; 
+%otherwise, we determine $S_1\leftarrow S_2$.
+%Note that these conditional probabilities can be computed easily from the Bayesian network model output from Structural EM. 
+%The intuition behind this is that the two probabilities $P(S_1=1|S_2=1)$ and $P(S_2=0|S_1=0)$ are certificates of the prerequisite structure $S_1\rightarrow S_2$.
+%The larger of these two probabilities, the more likely the relationship $S_1\rightarrow S_2$ holds.
+%Since here we are concerned with which direction the edge goes, we simply compare the products of two probabilities and select the direction that is more probable. 
 
+\textbf{Knowledge 1}. If $S_1$ is a prerequisite of $S_2$, i.e., $S_1\rightarrow S_2$, then $S_1=0\Rightarrow S_2=0$, which is equivalent to $S_2=1\Rightarrow S_1=1$.
+
+%If $S_1$ is a prerequisite of $S_2$, i.e., $S_1\rightarrow S_2$, then $P(S_1=1|S_2=1)= 1$ and $P(S_2=0|S_1=0)= 1$.
 \textbf{Knowledge 1} says if a skill $S_1$ is the prerequisite of a skill $S_2$,
-a student must master skill $S_1$ before he masters $S_2$ and it is impossible for him to master $S_2$ if he has not mastered $S_1$.
-In other words, $S_1$ is not a prerequisite of $S_2$ if at least one of the conditions does not hold.
+a student can not master skill $S_2$ before he masters $S_1$, i.e., $P(S_2=0|S_1=0)=1$.
+In other words, $S_1$ is not a prerequisite of $S_2$ if $P(S_2=0|S_1=0)=1$ does not hold.
 This puts a constraint on the joint distribution encoded by the Bayesian network to be learned.
-We can check for any reversible edge $S_1-S_2$ in the Bayesian network, either $P(S_1=1|S_2=1)= 1$ and $P(S_2=0|S_1=0)= 1$, or $P(S_2=1|S_1=1)= 1$ and $P(S_1=0|S_2=0)= 1$. 
-If the former holds, $S_1\rightarrow S_2$; otherwise, $S_1\leftarrow S_2$.  
+%We can check for any reversible edge $S_1-S_2$ in the Bayesian network, either $P(S_2=0|S_1=0)=1$ or $P(S_1=0|S_2=0)= 1$. 
+%If the former holds, $S_1\rightarrow S_2$; otherwise, $S_1\leftarrow S_2$.\footnote{$P(S_2=0|S_1=0)=1$ and $P(S_1=0|S_2=0)= 1$ can hold simultaneously under the condition
+%that} 
+In the case of determining the orientation of a reversible edge $S_1 - S_2$, we can check whether $P(S_2=0|S_1=0)=1$ or $P(S_1=0|S_2=0)=1$.\footnote{$P(S_2=0|S_1=0)=1$ and $P(S_1=0|S_2=0)=1$ can hold simultaneously. If $S_1\rightarrow S_2$ is true, $P(S_1=0|S_2=0)=1$ if $P(S_1=1)=0$ or $P(S_2=0|S_1=1)=0$. $P(S_1=1)=0$ means all students in the data do not know $S_1$. $P(S_2=0|S_1=1)=0$ means learning $S_2$ becomes trivial once they know $S_1$. Here, we assume these two extreme cases never happen.} 
 However, in real situations, it is possible for a student to master the post-requisite even he does not know the prerequisite. 
-Further, there is always noise in the data. Thus, the two conditional probabilities $P(S_1=1|S_2=1)$ and $P(S_2=0|S_1=0)$ are not exactly but close to 1.
-Thus, we use the following empirical rule: if $P(S_1=1|S_2=1)\cdot P(S_2=0|S_1=0)\ge P(S_2=1|S_1=1)\cdot P(S_1=0|S_2=0)$, we determine $S_1\rightarrow S_2$; 
+Further, there is always noise in the data. Thus, the conditional probability $P(S_2=0|S_1=0)$ is not exactly but close to 1.
+Thus, we use the following empirical rule: if $P(S_2=0|S_1=0)\ge P(S_1=0|S_2=0)$, we determine $S_1\rightarrow S_2$; 
 otherwise, we determine $S_1\leftarrow S_2$.
 Note that these conditional probabilities can be computed easily from the Bayesian network model output from Structural EM. 
-The intuition behind this is that the two probabilities $P(S_1=1|S_2=1)$ and $P(S_2=0|S_1=0)$ are certificates of the prerequisite structure $S_1\rightarrow S_2$.
-The larger of these two probabilities, the more likely the relationship $S_1\rightarrow S_2$ holds.
+The intuition behind this is that the conditional probability $P(S_2=0|S_1=0)$ can be interpreted as the strength of the prerequisite relationship $S_1\rightarrow S_2$.
+The larger of this probability, the more likely the relationship $S_1\rightarrow S_2$ holds.
 Since here we are concerned with which direction the edge goes, we simply compare the products of two probabilities and select the direction that is more probable. 
 
 	\begin{figure}[!ht]\small
@@ -512,21 +535,44 @@ Since here we are concerned with which direction the edge goes, we simply compar
 \label{sec:theory}
 
 The empirical rule proposed in \S~\ref{sec:usedomain} needs theoretical justification.
+%We consider the simple Bayesian network in Figure~\ref{fig:equivnet1}, which has only one reversible edge $S_1-S_2$.
+%This model has three free conditional probability parameters: $P(S_1=0)=p$, $P(S_2=0|S_1=0)=q$, $P(S_2=1|S_1=1)=r$.
+%If we observe data generated from this model, 
+%can we use the rule to determine $S_1\rightarrow S_2$? %by comparing $P(S_1=1|S_2=1)\cdot P(S_2=0|S_1=0)$ and $P(S_2=1|S_1=1)\cdot P(S_1=0|S_2=0)$?
+%Equivalently, we use rule $ratio=\frac{P(S_1=1|S_2=1)\cdot P(S_2=0|S_1=0)}{P(S_2=1|S_1=1)\cdot P(S_1=0|S_2=0)}\ge 1$.
+%Using Bayes rule and rules of probability, the rule becomes
+%\begin{align}
+%ratio=\frac{(1-p)(qp+1-r-p+pr)}{p[r(1-p)+p(1-q)]}\ge 1,
+%\end{align}
+%which can be simplified to
+%\begin{align}
+%\frac{(1-p)(1-r)-p(1-q)}{p[r(1-p)+p(1-q)]}\ge 0.
+%\end{align}
+%
+%The rule holds only if $(1-p)(1-r)-p(1-q)\ge 0$. Thus, we can use the rule to determine $S_1\rightarrow S_2$ if $(1-p)(1-r)-p(1-q)\ge 0$.
+%Since $ratio$ depends on $p$, $q$ and $r$, we study how $ratio$ changes with these parameters.
+%Figure~\ref{fig:contours} shows the contour plots of $log(ratio)$ against $P(S_1=0)$ and $P(S_2=1|S_1=1)$ for three different values of $P(S_2=0|S_1=0)$.
+%The white region in each contour plot is the region where the rule is not applicable. 
+%That is, in this region, $ratio<1$ even $S_1\rightarrow S_2$ is the true model.
+%As it is showed, if $P(S_2=0|S_1=0)=q=1$, 
+%the rule is always applicable no matter what values $P(S_1=0)$ and $P(S_2=1|S_1=1)$ are.
+%With $P(S_2=0|S_1=0)$ decreasing, the white region becomes larger and the rule becomes more inapplicable.
+%$P(S_2=0|S_1=0)$ can be interpreted as the strength of the prerequisite relationship. When the prerequisite relationship is weaker, the rule is less applicable 
+%and using the rule to determine the prerequisite relationship is less accurate.
 We consider the simple Bayesian network in Figure~\ref{fig:equivnet1}, which has only one reversible edge $S_1-S_2$.
 This model has three free conditional probability parameters: $P(S_1=0)=p$, $P(S_2=0|S_1=0)=q$, $P(S_2=1|S_1=1)=r$.
 If we observe data generated from this model, 
-can we use the rule to determine $S_1\rightarrow S_2$? %by comparing $P(S_1=1|S_2=1)\cdot P(S_2=0|S_1=0)$ and $P(S_2=1|S_1=1)\cdot P(S_1=0|S_2=0)$?
-Equivalently, we use rule $ratio=\frac{P(S_1=1|S_2=1)\cdot P(S_2=0|S_1=0)}{P(S_2=1|S_1=1)\cdot P(S_1=0|S_2=0)}\ge 1$.
+can we use the rule to discriminate between $S_1\rightarrow S_2$ and $S_1\leftarrow S_2$? %by comparing $P(S_1=1|S_2=1)\cdot P(S_2=0|S_1=0)$ and $P(S_2=1|S_1=1)\cdot P(S_1=0|S_2=0)$?
+Equivalently, we use rule $ratio=\frac{P(S_2=0|S_1=0)}{P(S_1=0|S_2=0)}\ge 1$.
 Using Bayes rule and rules of probability, the rule becomes
 \begin{align}
-ratio=\frac{(1-p)(qp+1-r-p+pr)}{p[r(1-p)+p(1-q)]}\ge 1,
+	ratio=\frac{pq+(1-r)(1-p)}{p}\ge 1,
 \end{align}
 which can be simplified to
 \begin{align}
-\frac{(1-p)(1-r)-p(1-q)}{p[r(1-p)+p(1-q)]}\ge 0.
+	(1-p)(1-r)-p(1-q)\ge 0.
 \end{align}
-
-The rule holds only if $(1-p)(1-r)-p(1-q)\ge 0$. Thus, we can use the rule to determine $S_1\rightarrow S_2$ if $(1-p)(1-r)-p(1-q)\ge 0$.
+Thus, we can use the rule to determine $S_1\rightarrow S_2$ if $(1-p)(1-r)-p(1-q)\ge 0$.
 Since $ratio$ depends on $p$, $q$ and $r$, we study how $ratio$ changes with these parameters.
 Figure~\ref{fig:contours} shows the contour plots of $log(ratio)$ against $P(S_1=0)$ and $P(S_2=1|S_1=1)$ for three different values of $P(S_2=0|S_1=0)$.
 The white region in each contour plot is the region where the rule is not applicable. 
@@ -534,7 +580,7 @@ That is, in this region, $ratio<1$ even $S_1\rightarrow S_2$ is the true model.
 As it is showed, if $P(S_2=0|S_1=0)=q=1$, 
 the rule is always applicable no matter what values $P(S_1=0)$ and $P(S_2=1|S_1=1)$ are.
 With $P(S_2=0|S_1=0)$ decreasing, the white region becomes larger and the rule becomes more inapplicable.
-$P(S_2=0|S_1=0)$ can be interpreted as the strength of the prerequisite relationship. When the prerequisite relationship is weaker, the rule is less applicable 
+As mentioned, $P(S_2=0|S_1=0)$ can be interpreted as the strength of the prerequisite relationship. When the prerequisite relationship is weaker, the rule is less applicable 
 and using the rule to determine the prerequisite relationship is less accurate.
 
 \subsubsection{Orient All Reversible Edges}
@@ -741,7 +787,17 @@ In all our experiments, we use the Bayesian information criterion (BIC) as the s
 				\end{center}
 				\caption{Results of learning with missing data. Left: Comparison of $F_1$ scores for adjacency discovery. Horizontal lines are baseline $F_1$ scores computed for fully connected Bayesian networks. Right: Comparison of $F_1$ scores for edge orientation. }
 				\label{fig:f1-missing} 
-			\end{figure} 			
+			\end{figure}
+			
+					\begin{figure}[!th]
+						\begin{center}
+							\centering
+							\includegraphics[width=0.6\linewidth]{figures/F1_parm.eps}
+						\end{center}
+						%\vspace{-1em}
+						\caption{Comparison of COMMAND and PARM for discovering prerequisite relationships in Structure 3. The cutoff values used for PARM experiments are: $ minsup=0.125$, $minconf=0.76$, $minprob=0.9$.}
+						\label{fig:f1-parm} 
+					\end{figure} 			
 	
 	Figure~\ref{fig:f1-noisy} compares the results where noise was introduced or not.
 	Interestingly, the noise does not harm the learning accuracy at all, and actually improves the accuracy.
@@ -776,19 +832,8 @@ In all our experiments, we use the Bayesian information criterion (BIC) as the s
 	The low $F_1$ score by PARM is caused by low $TPR$, i.e., PARM failed to discover many prerequisite relationships (data not shown).
 	It is speculated that selecting a different set of cutoff values for PARM might improve the results.
 	However, determining these thresholds is not trivial and requires experts' intervention. By contrast, COMMAND does not require tuning of many parameters.  
-	Another disadvantage of PARM is that it does not respect transitivity. 
-	That is, PARM may not identify $S_1\rightarrow S_3$ even when it has discovered $S_1\rightarrow S_2$ and $S_2\rightarrow S_3$.
-	
-	
-		\begin{figure}[!th]
-			\begin{center}
-				\centering
-					\includegraphics[width=0.7\linewidth]{figures/F1_parm.eps}
-			\end{center}
-			%\vspace{-1em}
-			\caption{Comparison of COMMAND and PARM for discovering prerequisite relationships in Structure 3. The cutoff values used for PARM experiments are: $ minsup=0.125$, $minconf=0.76$, $minprob=0.9$.}
-			\label{fig:f1-parm} 
-		\end{figure}	 
+	%Another disadvantage of PARM is that it does not respect transitivity. 
+	%That is, PARM may not identify $S_1\rightarrow S_3$ even when it has discovered $S_1\rightarrow S_2$ and $S_2\rightarrow S_3$.	 
 	
 	\subsection{Real Student Performance Data}
 	\label{sec:real}
