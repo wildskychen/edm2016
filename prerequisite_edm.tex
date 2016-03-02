@@ -832,8 +832,9 @@ In all our experiments, we use the Bayesian information criterion (BIC) as the s
 	The low $F_1$ score by PARM is caused by low $TPR$, i.e., PARM failed to discover many prerequisite relationships (data not shown).
 	It is speculated that selecting a different set of cutoff values for PARM might improve the results.
 	However, determining these thresholds is not trivial and requires experts' intervention. By contrast, COMMAND does not require tuning of many parameters.  
-	%Another disadvantage of PARM is that it does not respect transitivity. 
-	%That is, PARM may not identify $S_1\rightarrow S_3$ even when it has discovered $S_1\rightarrow S_2$ and $S_2\rightarrow S_3$.	 
+	Another problem of PARM is that it does not respect transitivity. 
+	That is, PARM may not identify $S_1\rightarrow S_3$ even when it has discovered $S_1\rightarrow S_2$ and $S_2\rightarrow S_3$.
+	This partially explains the low $TPR$.	 
 	
 	\subsection{Real Student Performance Data}
 	\label{sec:real}
