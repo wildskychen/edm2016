@@ -181,13 +181,13 @@ Students usually acquire skills in a meaningful sequence which starts from relat
 %but organized in a meaningful order which starts from relatively simple concepts and gradually introduces more complex ones. 
 Among these skills, some are preliminary of others such that they must be mastered before the subsequent concepts can be learned.
 For instance, students have to know how to do addition before they learn to do multiplication.
-\hl{What is a prerequisite structure?}
+%\hl{What is a prerequisite structure?}
 In this paper, we use prerequisite structure to refer to the relationships among skills that place strict constraints on the order in which these skills can be acquired. Determining the prerequisite relations among skills is crucial for designing curriculum and for assessing mastery.
 
 Prerequisite structures of skills are often hand-engineered by subject matter experts in a costly and time-consuming process. 
 Moreover, the prerequisite structures specified by the experts are seldom tested and might be unreliable in
 the sense that experts may hold ``blind spots".
-Nowadays, large volume of educational data has been cumulated through the online tutoring systems.  
+Nowadays, large volume of educational data has been cumulated through the digital tutoring systems.  
 Thus, learning prerequisite structures from educational data has drawn substantial interest from both education and data mining communities \cite{desmarais2006learned,vuong2010method, brunskill2010estimating,scheines2014discovering,chen2015discovering,piech2015deep}.
 However, inferring the prerequisite relationships between skills is still challenging since a student's knowledge of a skill is an unobserved latent variable in the data.
 In this paper, we introduce \emph{Combined student Modelling and prerequisite Discovery} (COMMAND), 
@@ -254,7 +254,7 @@ This enables more accurate modeling of the probabilistic dependence between skil
 By modeling prerequisite relations as a Bayesian network, Scheines et al. converted the problem of prerequisite structure discovery to a Bayesian network structural learning problem, and proposed an algorithm to find Bayesian network structures that fit the data \cite{scheines2014discovering}.
 However, the output from their algorithm is a class of Bayesian networks, which are equivalent in representing a probability distribution.
 These \emph{equivalent} Bayesian networks have the same skeleton but differ in the orientation of some edges, thus represent very different prerequisite structures.
-Scheines and his colleagues did not offer any to discriminate between these Bayesian networks.
+Scheines and his colleagues did not offer any solution to discriminate between these Bayesian networks.
 %Further, they validated their algorithm only on synthetic data
 
 In this paper, we propose the \emph{Combined student Modelling and prerequisite Discovery} (COMMAND) pipeline 
@@ -262,9 +262,14 @@ to infer the prerequisite structures of skills and a student model from data.
 The pipeline also uses the promising Bayesian network model to represent the prerequisite relationships.
 The pipeline first uses a popular Bayesian network structure learning algorithm, 
 called Structural EM to select a class of Bayesian network models based on the distribution fitting of the data.
-It then uses constraint on the conditional probability tables to select one Bayesian network, which gives a unique prerequisite structure.
-We demonstrate the robustness of our proposed approach on noisy data that contains unaccounted hidden variables or missing values.
-Finally, we show the discovered prerequisite structures are useful for student modeling.
+It then uses the domain knowledge that it is unlikely for a student to master a skill before mastering its prerequisite skills to select one Bayesian network, 
+which gives a unique prerequisite structure.
+Different from \cite{scheines2014discovering}, Structural EM converts the Bayesian network learning to an optimization problem.
+It is more scalable and can be applied to data that contain missing values.
+Further, the approach in \cite{scheines2014discovering} only outputs the topology of the Bayesian network, while 
+Structural EM outputs both the structure and the probability distribution (a set of conditional probabilities), which is very useful for student modeling.
+We demonstrate the robustness of our proposed approach on noisy data that contains unaccounted latent variables or missing values.
+Finally, we show the discovered prerequisite models are useful for student modeling.
 %\hl{ Please consider adding a table \url{https://docs.google.com/document/d/1BTNJSc67-vAUkSsDBp8b1OyvClQULx42b6PyQXQ3it4/edit}}
 
 \section{The COMMAND Pipeline}
@@ -280,15 +285,16 @@ Bayesian networks are a flexible tool that can be used to model an entire curric
 Figure~\ref{fig:smexample} illustrates an example of a prerequisite structure modeled with a Bayesian network.
 Here, we relate four test items with the skills of addition and multiplication.
 Addition is a prerequisite of multiplication thus there is an arrow from addition to multiplication.
-Modeling prerequisites as edges in a Bayesian network allows us to frame the discovery of the prerequisite relationships as the well-studied machine learning problem of learning a DAG (with the presence of latent variables).
+Modeling prerequisites as edges in a Bayesian network allows us to frame the discovery of the prerequisite relationships as the well-studied machine learning problem of
+learning a Bayesian network from data (with the presence of latent variables).
 
 
 \begin{figure}
 	\begin{center}
-		\includegraphics[width=1.0\linewidth]{figures/studentmodel.png}
+		\includegraphics[width=.90\linewidth]{figures/studentmodel.png}
 	\end{center}
-	\caption{A hypothetical Bayesian network learned with Algorithm~\ref{alg:COMMAND}. 
-		Solid edges are given by the item to skill mapping, dashed edges between skill variables are to be discovered from data.
+	\caption{A hypothetical Bayesian network. %learned with Algorithm~\ref{alg:COMMAND}. 
+		Solid edges are given by item to skill mapping, dashed edges between skill variables are to be discovered from data.
 		The conditional probability tables are to be learned.}
 	\label{fig:smexample} 
 \end{figure} 
@@ -296,7 +302,7 @@ Modeling prerequisites as edges in a Bayesian network allows us to frame the dis
 
 Algorithm~\ref{alg:COMMAND} describes the COMMAND pipeline.
 Suppose we collect data from  $n$ students, answering $p$ items.
-Then, the input of COMMAND is a matrix $\mathbf{D}$ with $n \times p$ dimensions and an item to skill mapping $Q$-matrix.
+Then, the input to COMMAND is a matrix $\mathbf{D}$ with $n \times p$ dimensions, and an item to skill mapping $Q$-matrix.
 %, and (optionally) some constraints on what content can trigger a remediation.
 Each entry in $\mathbf{D}$ encodes the performance of a student (see Table~\ref{tbl:d-matrix} for an example).
 %COMMAND first constructs the prerequisite relationships among the set of skills using constraints.
@@ -316,15 +322,7 @@ Each entry in $\mathbf{D}$ encodes the performance of a student (see Table~\ref{
 	\end{tabular}
 \end{table}
 
-
-COMMAND relies on a popular machine learning algorithm called Structural Expectation Maximization (EM), which has not been used in educational applications. 
-A secondary contribution of our work is introducing Structural EM for learning Bayesian network structures from educational data.
-%In particular, we modify Structural EM to be used for discovering the prerequisite relationships among skills from students' responses on test items.
-%One of the advantages of Structural EM algorithm over prior work is that it allows to combine expert beliefs into the inference process.
-%\hl{Say some advantages of Structural E-M, such that it allows expert beliefs to be engineered,  this helps so a remediation won't be content from the future, but only for the past, for example}
-We now describe the  steps of COMMAND in detail.
-
-\begin{algorithm}
+\begin{algorithm}[!ht]
 	\begin{algorithmic}[1]
 		\Require A matrix $\mathbf{D}$ of student performance on a set of test items, skill-to-item mapping $Q$ (containing a set of skills $\mathbf{S}$).
 		%and a set of constraints $\mathbf{C}$ reflecting experts' beliefs on the prerequisite structure
@@ -337,8 +335,8 @@ We now describe the  steps of COMMAND in detail.
 		\State \emph{M}-step:
 		\State ~~~ $\langle G_{i+1}, \theta_{i+1}\rangle\leftarrow$ BNLearning($G_i$,$\mathbf{D}_i^*$)
 		\State ~~~ $i\leftarrow i+1$
-		\doWhile{Stop criteria is not met}~~~~~~~~~~~~~~~~~~\tikzmark{right}\tikzmark{sembot}
-		\State $RE\leftarrow FindReversibleEdges(G_i)$  ~~~~~~~~~~~~~~~~~\tikzmark{lsmtop}\tikzmark{right}
+		\doWhile{stop criterion is not met}~~~~~~~~~~~~~~~~~~\tikzmark{right}\tikzmark{sembot}
+		\State $RE\leftarrow FindReversibleEdges(G_i)$  ~~~~~~~~~~~~~~~~~~~~~\tikzmark{lsmtop}\tikzmark{right}
 		\State $EC\leftarrow EnumEquivalentDAGs(G_i)$
 		\State $DE\leftarrow \{\}$
 		\For{every reversible edge $S_i - S_j$ in $RE$}
@@ -355,7 +353,9 @@ We now describe the  steps of COMMAND in detail.
 		\State $sort(DE)$ by $ratio^*$ in descending order
 		\While{$DE$ is not empty}
 		\State $e\leftarrow dequeue(DE)$
+		\If{$\exists G\in EC$ $e\in G$}
 		\State $\forall G\in EC$, remove $G$ from $EC$ if $e\notin G$
+		\EndIf
 		\EndWhile
 		\State return $EC$ 		
 		\tikzmark{lsmbot}
@@ -367,13 +367,15 @@ We now describe the  steps of COMMAND in detail.
 \end{algorithm}
 \footnotetext{$P(S_i=a|S_j=b)$ can be computed using any Bayesian network inference algorithm such as Junction tree algorithm\cite{koller2009probabilistic}.}
 
+COMMAND relies on a popular machine learning algorithm called Structural Expectation Maximization (EM), which has not been used in educational applications. 
+A secondary contribution of our work is introducing Structural EM for learning Bayesian network structures from educational data.
+We now describe the  steps of COMMAND in detail.
 \subsection{Initial Bayesian Network}
 \label{sec:initial_bn}
-COMMAND represents the prerequisite structure using Bayesian networks that use latent variables to represent the student knowledge of a skill, 
-and observed variables that represent the student performance answering items (e.g, correct or incorrect).
-We first create an initial Bayesian network that complies to the skill-to-item $Q$-matrix
+COMMAND represents the prerequisite structure using Bayesian networks that use latent binary variables to represent the student knowledge of a skill, 
+and observed binary variables that represent the student performance answering items (e.g, correct or incorrect).
+We first create an initial Bayesian network that complies to the skill-to-item $Q$-matrix.
 % and a set of constraints reflecting experts' belief
-on the prerequisite structure 
 %(step 1 of Algorithm~\ref{alg:remind}).
 That is, we create an arc to each item from each of its required skills and leave all skill variables disconnected.
 With the created Bayesian network as an initial network, we learn the arcs between the skill variables using Structural EM.
@@ -383,7 +385,7 @@ With the created Bayesian network as an initial network, we learn the arcs betwe
 
 A common solution to learning a Bayesian network from data is the score-and-search approach \cite{cooper1992bayesian,heckerman1997bayesian}.
 This approach uses a scoring function\footnote{A commonly used scoring function is Bayesian information criterion (BIC), which is composed of a likelihood term and a term to penalize the model complexity} to measure the fitness of a Bayesian network structure to the observed data, 
-and manages to find the optimal model in the space of all possible Bayesian network structures.
+and attempts to find the optimal model in the space of all possible Bayesian network structures.
 However, the conventional score-and-search approaches rely on efficient computation of the scoring function, 
 which is only feasible for problems where data contains observations for all variables in the Bayesian network.
 Unfortunately, our domain has skill variables that are not directly observed.
@@ -405,7 +407,7 @@ and use the values to complete the data.
 In the \emph{M-step}, we use the conventional score-and-search approach to optimize the structure according to the completed data.
 Since the space of possible Bayesian network structures is super-exponential, 
 exhaustive search is intractable and local search algorithms, such as greedy hill-climbing search, are often used.
-The \emph{E-step} and \emph{M-step} interleave and iterate until some stop criteria is met, e.g., the scoring function does not change significantly.
+The \emph{E-step} and \emph{M-step} interleave and iterate until some stop criterion is met, e.g., the scoring function does not change significantly.
 Contrast to the conventional score-and-search algorithm, Structural EM runs EM only on one structure in each iteration, thus is computationally more efficient.
 
 COMMAND's  initialization step
@@ -427,10 +429,10 @@ In  the \emph{M-step} of our Structural EM implementation we only consider the c
 \end{figure} 
 
 An advantage of using Structural EM to discover the prerequisite relationship of skills, is that it is easily extensible to incorporate domain knowledge.
-For example, we can  place constraints on the output structure to force or to disallow a skill to be a prerequisite from another other skill.
-Consider,  an intelligent tutor that teaches the content of a book. 
-The book content structure provides a natural ordering of the chapters. 
-We may use the book structure to engineer domain knowledge that an introductory chapter cannot be prerequisite of content that appears later in the book.
+For example, we can  place constraints on the output structure to force or to disallow a skill to be a prerequisite of another other skill.
+%Consider, an intelligent tutor that teaches the content of a book. 
+%The book content structure provides a natural ordering of the chapters. 
+%We may use the book structure to engineer domain knowledge that an introductory chapter cannot be prerequisite of content that appears later in the book.
 
 Another advantage of Structural EM is that it can be applied when there are missing data in the student performance matrix $\mathbf{D}$. 
 That is, some students do not answer all the items thus some responses are missing. This ``missing values" problem is very common in real-world situations.
@@ -445,7 +447,7 @@ Thus, the output from Structure EM is an equivalence class that may contain many
 These equivalent Bayesian networks have the same skeleton and the same $v$-structures\footnote{
 A $v$-structure in a Bayesian network $G$ is an ordered triple of nodes $(u,v,w)$ such that $G$ contains the directed edges $u\rightarrow v$ and $w\rightarrow v$ and $u$ and $w$ are not adjacent in $G$. \cite{verma1990equivalence}.}. 
 For instance, Figure~\ref{fig:equivnets} gives an example of two simple Bayesian networks that are not distinguishable by Structural EM algorithm.
-They share the skeleton but differ in the orientation of the edge. They apparently represent two different prerequisite structures.
+They share the skeleton but differ in the orientation of the edge (we will call such an edge a reversible edge). They apparently represent two different prerequisite structures.
 
 \subsubsection{Use Domain Knowledge}
 \label{sec:usedomain}
@@ -509,7 +511,7 @@ Since here we are concerned with which direction the edge goes, we simply compar
 \subsubsection{Theoretical Justification}
 \label{sec:theory}
 
-The empirical rule proposed in section~\ref{sec:usedomain} needs theoretical justification.
+The empirical rule proposed in \S~\ref{sec:usedomain} needs theoretical justification.
 We consider the simple Bayesian network in Figure~\ref{fig:equivnet1}, which has only one reversible edge $S_1-S_2$.
 This model has three free conditional probability parameters: $P(S_1=0)=p$, $P(S_2=0|S_1=0)=q$, $P(S_2=1|S_1=1)=r$.
 If we observe data generated from this model, 
@@ -537,23 +539,23 @@ and using the rule to determine the prerequisite relationship is less accurate.
 
 \subsubsection{Orient All Reversible Edges}
 Using the empirical rule, we can orient every reversible edge in the network structure. 
-However, orienting each reversible edge is not independent and may conflict each other.
+However, orienting each reversible edge is not independent and may conflict with each other.
 Having oriented one edge would constrain the orientation of other reversible edges because we have to ensure the graph is a DAG and the equivalence property is not violated.
 For example, in Figure~\ref{fig:syn-nets}a, if we have determined $S_1\rightarrow S_2$, the edge $S_2\rightarrow S_3$ is enforced.
 In this paper, we take an ad-hoc strategy to determine the orientation for all reversible edges. 
 For each reversible edge $S_i-S_j$, we let $ratio^*=ratio$ if $ratio >1$ and $ratio^*=\frac{1}{ratio}$ otherwise. 
 The larger the $ratio^*$ is, the more confidently when we decide the orientation.
 We sort the list of reversible edges by $ratio^*$ in descending order. We then orient the edges by this ordering.
-When one edge is oriented, the constraint is propagated to other reversible edges. In practical implementation, we use a the following strategy: 
+When one edge is oriented, the constraint is propagated to other reversible edges. In practical implementation, we use the following strategy: 
 we first enumerate all equivalent Bayesian networks and make them a list of candidates; 
 when an edge is oriented to $S_i\rightarrow S_j$, we remove all contradicting Bayesian networks from the list.
-Eventually only one Bayesian network structure stands. This procedure is detailed in the \emph{Orient edges} section of Algorithm~\ref{alg:COMMAND}.  
+Eventually only one Bayesian network structure stands. This procedure is detailed in the \emph{Discriminate between equivalent BNs} section of Algorithm~\ref{alg:COMMAND}.  
 The $EnumEquivalentDAGs(G_i)$ implements the algorithm of enumerating equivalent DAGs in \cite{chen2014finding}.
 
 \section{Evaluation}
-In \S~{\ref{sec:synthetic}, we  evaluate COMMAND with simulated data  to assess the quality of the discovered prerequisite structures.
-Then, in \S~\ref{sec:real} we  use  data collected from real students.
-In all our experiment, we use the Bayesian information criterion (BIC) as the scoring function in Structural EM . 
+In \S~\ref{sec:synthetic}, we evaluate COMMAND with simulated data  to assess the quality of the discovered prerequisite structures.
+Then, in \S~\ref{sec:real} we use  data collected from real students.
+In all our experiments, we use the Bayesian information criterion (BIC) as the scoring function in Structural EM . 
 %The BIC score for a Bayesian network model is composed of a likelihood term and a term to penalize the model complexity.
 
 	\subsection{Simulated Data}
@@ -563,7 +565,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	%various factors, including sample size, number of skill or item variables, prior knowledge, noises in the data, 
 	%affect the learning performance.
 	
-	Synthetic data allows us to study how COMMAND compares to ground truth.
+	Synthetic data allow us to study how COMMAND compares to ground truth.
 	For this, we engineered three prerequisite structures (DAGs), shown in Figure~\ref{fig:syn-nets}.
 	Here, each figure represents different causal relations between the simulated latent skill variables.
 	%Note that some edges are reversible and represented as undirected edges. 
@@ -658,8 +660,8 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 		\item How does the type of items affect COMMAND's ability to recover the prerequisite structure?
 		We consider the situation where in the model each item requires only one skill and the situation where each item requires multiple skills. 
 		\item How well does COMMAND perform when there is noise in the data?
-		We focus on studying noise due to the presence of unaccounted hidden variables.
-		\item How well does COMMAND perform when the student performance data has missing values?
+		We focus on studying noise due to the presence of unaccounted latent variables.
+		\item How well does COMMAND perform when the student performance data have missing values?
 		\item How is COMMAND compared with other prerequisite discovery methods?
 		In particular, we compare COMMAND to the Probabilistic Association Rules Mining (PARM) method \cite{chen2015discovering}.
 	\end{enumerate}
@@ -669,7 +671,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	\subsubsection{Single-skill vs Multi-skill Items}
 	
 	We consider two situations where different types of $Q$-matrix are used. In the first situation,
-	each item node maps to only one skill node. In the second one, each item loads 1-3 skills. 
+	each item node maps to only one skill node. In the second one, each item maps to 1-3 skills. 
 	Figure~\ref{fig:f1-single-multi} compares the $F_1$ of adjacency discovery and edge orientation result under two types of $Q$-matrix.
 	We observe that the accuracy for both the adjacency and the edge orientation  improves with the amount of data.
 	With just 2000 observations, the algorithm can recover the true structures almost perfectly.
@@ -686,7 +688,8 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 		\end{center}
 		%\vspace{-0.5em}
 		\caption{Comparison of $F_1$ scores for adjacency discovery (top row) and for edge orientation (bottom row). 
-			Horizontal lines are baseline $F_1$ scores computed for fully connected (complete) Bayesian networks.} 
+			Horizontal lines are baseline $F_1$ scores computed for fully connected (complete) Bayesian networks.
+			The error bars show the $95\%$ confidence intervals, i.e., $\pm 1.96*$\texttt{SE}.} 
 		\label{fig:f1-single-multi}
 		%\vspace{-1em}
 	\end{figure} 
@@ -696,20 +699,21 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	
 	%\hl{Hard to read}
 	Real-world data sets often contain various types of noise.
-	For example,  noise may occur due to hidden variables that are not explicitly modeled. 
+	For example,  noise may occur due to latent variables that are not explicitly modeled. 
 	%For example, students' performances in a test also depends on their individual ability (in addition to their mastery status of the required skills). 
 	%This will create noises in the data if we don't directly model the student's ability.
-	To evaluate the sensitivity of COMMAND to noise, we synthesize Bayesian networks including a  \emph{StudentAbility} node that takes three possible states (low/med/high). 
+	To evaluate the sensitivity of COMMAND to noise, we synthesize the three Bayesian networks in Figure~\ref{fig:syn-nets} to include a \emph{StudentAbility} node 
+	that takes three possible states (low/med/high). 
 	In these Bayesian networks, students' performance depends not only on whether they have mastered the skill, but also on their individual ability. % (in addition to their mastery status of the required skills).
 	For simplicity, all items in the setting are single-skilled items. 
-	We first simulated data from  Bayesian networks that have a  \emph{StudentAbility} variable to generate ``noisy" data samples, and 
+	We first simulated data from  Bayesian networks that have a \emph{StudentAbility} variable to generate ``noisy" data samples, and 
 	%There is an arc from \emph{StudentAbility} to each item variable in these data generating models. 
 	then use this data to recover the prerequisite structure. % from these truncated data samples. 
-	Figure~\ref{fig:stuabilitymodel} illustrates the procedure of this sensitivity analysis experiment.
+	Figure~\ref{fig:stuabilitymodel} illustrates the procedure of this sensitivity analysis experiment for Structure 1.
 	
 			\begin{figure}[!ht]
 				\begin{center}
-					\includegraphics[width=1.0\linewidth]{figures/studentability.png}
+					\includegraphics[width=.95\linewidth]{figures/studentability.png}
 				\end{center}
 				\caption{Evaluation of COMMAND with noisy data} 
 				\label{fig:stuabilitymodel}
@@ -727,15 +731,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 				\caption{Results of adding systematic noise. Top: Comparison of $F_1$ scores for adjacency discovery. Horizontal lines are baseline $F_1$ scores computed for fully connected Bayesian networks. Bottom: Comparison of $F_1$ scores for edge orientation. }
 				\label{fig:f1-noisy} 
 			\end{figure}
-	
-	Figure~\ref{fig:f1-noisy} compare the results where noise was introduced or not.
-	Interestingly, the noise does not harm the learning accuracy at all, and actually improves the accuracy.
-	We hypothesize that adding this variable is actually removing noise by separating students by ability, which can help the structure learning.
-	%the existence of additional hidden variable increases the variance of the data which can help the structure learning.
-	%remove noise by separating students by ability
-	%\hl{Can you show the ``true" Bayes net (i.e, with student ability node) and the one we are trying to learn?}
 
-	
 			\begin{figure}[!ht]
 				\begin{center}
 					\centering
@@ -745,15 +741,26 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 				\end{center}
 				\caption{Results of learning with missing data. Left: Comparison of $F_1$ scores for adjacency discovery. Horizontal lines are baseline $F_1$ scores computed for fully connected Bayesian networks. Right: Comparison of $F_1$ scores for edge orientation. }
 				\label{fig:f1-missing} 
-			\end{figure} 
+			\end{figure} 			
+	
+	Figure~\ref{fig:f1-noisy} compares the results where noise was introduced or not.
+	Interestingly, the noise does not harm the learning accuracy at all, and actually improves the accuracy.
+	This improvement is more evident when the sample size is small (see $n=150$).
+	%We hypothesize that adding this variable is actually removing noise by separating students by ability, which can help the structure learning.
+	We hypothesize that the correlations caused by \emph{StudentAbility} node would be compensated by adding more edges between skill nodes. 
+	For small sample size, this might help because BIC score tends to give sparse structures.
+	%the existence of additional hidden variable increases the variance of the data which can help the structure learning.
+	%remove noise by separating students by ability
+	%\hl{Can you show the ``true" Bayes net (i.e, with student ability node) and the one we are trying to learn?}
+
 	
 	\subsubsection{In Presence of Missing Values}
-	Real-world student data often has missing values, i.e., students do not respond to all items. %Structural EM can also be applied with the missing data. 
+	Real-world student data often have missing values, i.e., students do not respond to all items. %Structural EM can also be applied with the missing data. 
 	%The general idea is, in the E-step, in addition to completing the values for hidden skill variables, the algorithm has to complete the missing data points.
-	To evaluate how COMMAND performs on data with missing values, we generated data sets of size 1000 with varying fraction of randomly missing values ($10\%$, $20\%$, $30\%$, $40\%$, $50\%$) and used COMMAND to recover the structures from these data sets. Again, the models only contains single-skilled items.  
+	To evaluate how COMMAND performs on data with missing values, we generated data sets of size 1000 with varying fraction of randomly missing values ($10\%$, $20\%$, $30\%$, $40\%$, $50\%$) and used COMMAND to recover the structures from these data sets. Again, the models only contain single-skilled items.  
 	The results are presented in Figure~\ref{fig:f1-missing}.
 	It is seen that the accuracy decreases when the fraction of missing values increases. 
-	However, COMMAND is still able to recover the true structures for Structure 1 and 2 even the data contains up to $30\%$ missing values. 
+	However, COMMAND is still able to recover the true structures for Structure 1 and 2 even when the data contain up to $30\%$ missing values. 
 	
 	\subsubsection{Comparison With PARM}
 	Chen and his colleagues proposed to use Probabilistic Association Rules Mining (PARM) for discovering the prerequisite relationships between skills \cite{chen2015discovering}.
@@ -769,6 +776,8 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	The low $F_1$ score by PARM is caused by low $TPR$, i.e., PARM failed to discover many prerequisite relationships (data not shown).
 	It is speculated that selecting a different set of cutoff values for PARM might improve the results.
 	However, determining these thresholds is not trivial and requires experts' intervention. By contrast, COMMAND does not require tuning of many parameters.  
+	Another disadvantage of PARM is that it does not respect transitivity. 
+	That is, PARM may not identify $S_1\rightarrow S_3$ even when it has discovered $S_1\rightarrow S_2$ and $S_2\rightarrow S_3$.
 	
 	
 		\begin{figure}[!th]
@@ -788,12 +797,12 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	\subsubsection{ECPE Data Set}
 	The ECPE (Examination for the Certification of Proficiency in English) data set was collected from a test by the English language Institute
 	of the University of Michigan to examine individual cognitive skills required for understanding English language grammar \cite{templin2014hierarchical}.
-	It contains a sample of 2922 examinees who is tested by 28 items on 3 skills, i.e., \emph{morphosyntactic rules} ($S_1$), \emph{cohesive rules} ($S_2$) 
+	It contains a sample of 2922 examinees who are tested by 28 items on 3 skills, i.e., \emph{morphosyntactic rules} ($S_1$), \emph{cohesive rules} ($S_2$) 
 	and \emph{lexical rules} ($S_3$). Each item requires either one or two of the three skills. 
-	The prerequisite structure output from COMMAND are depicted in Figure~\ref{fig:ecpe-result}. The estimated conditional probability tables (CPT) are showed correspondingly.
+	The prerequisite structure output from COMMAND is depicted in Figure~\ref{fig:ecpe-result}. The estimated conditional probability tables (CPT) are showed correspondingly.
 	The discovered structure says \emph{lexical rules} is a prerequisite of \emph{cohesive rules} and \emph{morphosyntactic rules}, 
 	and \emph{cohesive rules} is a prerequisite of \emph{morphosyntactic rules}. 
-	This totally agrees with the findings in \cite{templin2014hierarchical} and by the PARM method in \cite{chen2015discovering}.
+	This totally agrees with the findings in \cite{templin2014hierarchical} and that by the PARM method in \cite{chen2015discovering}.
 	%Note that PARM discovered the three pairwise prerequisite relationships but COMMAND output a full structure.
 	Further, COMMAND also outputs the conditional probabilities associated with each skill and its direct prerequisite.
 %	which provides insights into how prerequisites impact the post-requisite probabilistically. 
@@ -810,37 +819,18 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 			\end{figure}
 	
 	\subsubsection{Math Data Set}
-	 %\hl{What is HED? ... Just call it Math.}
 	We now evaluate COMMAND using data collected from a commercial non-adaptive tutoring system.
-	The data set, named \texttt{Math}, is from anonymized students interacting with an implementation of a seventh grade math curriculum.
-	%This implementation is used by schools (we call it \texttt{traditional}),
 	The textbook items are classified in chapters, sections, and objectives; but for this paper, we only use the data from Chapter 2 and Chapter 3 of the book.
 	We use performance data while students solve test items. That is, students are tested on the items after they have been taught all relevant skills.
-%	We model the test and homework data using assessment models (\S~\ref{sec:assessment_results}) and learning methods~(\S~\ref{sec:learning_results}), respectively.
-	%\texttt{traditional} is much larger data set than \texttt{virtual}.
-	%In our experiments, the performance results were converted to binary, i.e., correct or incorrect.
-	
-	%We first describe our datasets in more detail (\S~\ref{sec:dataset}).
-	%We then describe the learned prerequisite structure (\S~\ref{sec:prerequisite_results})
-	%as well as our assessment (\S~\ref{sec:assesment_results}) and learning experiments (\S~\ref{sec:learning_results}).
-	%In the following assessments, we will use testing results for evaluating the static Bayesian network model and homework for evaluating the PFA models.
-	
-	%\hl{Mind the note:}
-	%Describe digits and connections dataset, without calling them by that names.
-	%Call them something else, like "Traditional digital tutor", "Cyber-chart digital tutor"
-	%Provide descriptive statistics.
-	%Notice that my experiments I use the homework table.  Describe that there are homeworks \& Test
 	
 	\paragraph{$Q$-matrix and preprocessing}
 	\label{sec:preprocessing}
-	We use an item-to-skill mapping ($Q$-matrix) that assigns each exercise to a skill solely as the book section in which the item appears.
-	%This $Q$-matrix does not convey any information on how or when to offer a remedial intervention to a learner.
-	%For this, we investigate the extent on which REMIND can discover a remediation model using student performance data.
-	For each chapter, We process the data set to find a subset of  items and students that does not have missing values.
+	We define skills as book sections.
+	We use an item-to-skill mapping ($Q$-matrix) that assigns each exercise to a skill solely as the book section in which the item appears.\footnote{Here we assume the items are single-skilled despite that they might be multi-skilled. In future a more accurate $Q$-matrix should be used.}
+	For each chapter, We process the data set to find a subset of items and students that does not have missing values.
 	This is,  the dataset we use in COMMAND has students responding to \textit{all} of the  items.
 	
-	%Table~\ref{tab:seclistdata} lists the twelve skills (book sections) remaining after filtering.
-	After filtering, we obtained two data sets, \texttt{Math-chap2} and \texttt{Math-chap3} for Chapter 2 and 3 respectively. 
+	After filtering, two data sets, \texttt{Math-chap2} and \texttt{Math-chap3}, were obtained for Chapter 2 and 3 respectively. 
 	In \texttt{Math-chap2}, six skills are included and each skill is tested on three to eight items, for a total of 30  items.
 	In \texttt{Math-chap3}, seven skills are included and each skill has three to seven items, for a total of 33 items.
 	\texttt{Math-chap2} includes student test results for 1720 students, 
@@ -849,7 +839,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	%For this reason, we use the larger \texttt{traditional} dataset to build the prerequisite model.
 	
 	For simplicity we use binary variables to encode  performance data (i.e, correct or incorrect) and skill variables  (i.e., mastery or not mastery).
-	This simplification is not necessary,  as COMMAND is able to use  discrete variables with arbitrary number of states.
+	%This simplification is not necessary,  as COMMAND is able to use  discrete variables with arbitrary number of states.
 	
 	\paragraph{Prerequisite Structure Discovery}
 	\label{sec:prerequisite_results}
@@ -889,12 +879,12 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	%Note that some edges are undirected indicating these directionalities of these edges can not determined given the observational data.
 	%Our observation is that the structures learned are not random, sections (skills) in the same chapter tend to form clusters, 
 	%even in the structure learned without the ordering constraint.
-	Our observation is that the topological order of the sections in both structures are fully consistent with the book ordering heuristic,
+	Our observation is that the topological order of the sections in both structures are fully consistent with the book ordering heuristic.
 	This shows an agreement between our fully data-driven method and human experts.
-	We also ran PARM approach to learn pair-wise prerequisite relationships from these data sets. Given $minsup=0.1$, $minconf=0.75$ and $minprob=0.9$,
-	$2\_5\rightarrow 2\_6$ and $2\_5\rightarrow 2\_7$ are discovered for \texttt{Math-chap2},
+	We also ran PARM approach to learn pair-wise prerequisite relationships from these data sets. Given $minsup=0.125$, $minconf=0.76$ and $minprob=0.9$,
+	$2\_5\rightarrow 2\_6$, $2\_5\rightarrow 2\_7$ and $2\_6\rightarrow 2\_7$ are discovered for \texttt{Math-chap2},
 	$3\_1\rightarrow 3\_3$ and $3\_2\rightarrow 3\_3$ are discovered for \texttt{Math-chap3}.
-	These relationships are subset of the set of relationships discovered by COMMAND. 
+	These relationships are small subset of the set of relationships discovered by COMMAND. 
 	%The inferred prerequisite structures are intuitively plausible, 
 	%as the topological order of the sections are consistent with the book structure, which reflects subject matter experts's belief on the prerequisite relationships 
 	%between the sections of each book chapter. 
@@ -913,8 +903,8 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	\label{sec:predictive_performance}
 	COMMAND not only discovers the topological relationships among skills, but also outputs a statistical model in the form of Bayesian network.
 	This statistical model can be used for inference and predictive modeling.
-	For example, given a student's response to one or to a set of items, we can infer his knowledge status of any skill.
-	This is very useful for remedial intervention, i.e., discover when a student is lacking background knowledge. 
+	For example, given a student's response to a set of items, we can infer the student's knowledge status of any skill.
+	This is very useful for remedial intervention, i.e., discovering when a student is lacking background knowledge. 
 	%We now evaluate  REMIND using data  that has already been collected (\textit{post-hoc} analysis). %an evaluation of the REMIND algorithm using  . 
 	In this paper, we evaluate these models by evaluating how well the generated Bayesian networks predict student performance
 	%student's knowledge about a skill given his/her performance on any of the test items. 
@@ -926,11 +916,11 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	In particular, we compute the posterior probability of a student's response to an item $I_i$ given his performance on all other items 
 	$\mathbf{I}_{-i}=\mathbf{I}\setminus\{I_i\}$, by marginalizing over the set of latent variables $\mathbf{S}$:
 	\begin{align}
-		P(I_i=1|\mathbf{I}_{-i}=\mathbf{i}_{-i}) =\sum_{\mathbf{S}}P(I_i, \mathbf{S}|\mathbf{I}_{-i}=\mathbf{i}_{-i}).
+		P(I_i|\mathbf{I}_{-i}=\mathbf{i}_{-i}) =\sum_{\mathbf{S}}P(I_i, \mathbf{S}|\mathbf{I}_{-i}=\mathbf{i}_{-i}).
 	\end{align}
 	This can be computed efficiently using the Junction tree algorithm \cite{koller2009probabilistic}. 
 	We then do binary classification based on the posterior probability.
-	We compare the Bayesian network models generated from COMMAND with four baseline predictors:
+	We compare the Bayesian network models generated from COMMAND with five baseline predictors:
 	\begin{itemize}[topsep=2pt,parsep=0pt,partopsep=0pt]
 		\item  A \emph{majority} classifier which always classifies  an instance to the majority class.
 		For example, if majority of the students get an item wrong, other students would likely get it wrong.
@@ -940,6 +930,8 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 		\item A Bayesian network model in which the skill variables are connected in a \emph{chain} structure, i.e., 2-2$\rightarrow$2-3$\rightarrow$2-4$\rightarrow\dots$
 		This assumes that a section (skill) only depends on the previous section.
 		In other words, a first-order Markov chain dependency structure.
+		\item A Bayesian network model constructed using the pairwise relationships output from \emph{PARM}. 
+		That is, we create an edge $S_i\rightarrow S_j$ if PARM says $S_i$ is the prerequisite of $S_j$.
 		\item A \emph{fully connected} Bayesian network where skill variables are fully connected with each other.
 		This model assumes no conditional independence between skill variables and can encode any joint distribution over the skill variables.
 		However, it has exponential number of free parameters and thus can easily overfit the data.
@@ -958,7 +950,7 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 			\caption{\texttt{HED-chap3} AUC results.}
 			\label{fig:auc-chap3}
 		\end{subfigure}%
-		\caption{Comparison of AUC of five models to predict student performance on test items. The results are from 10 fold cross-validation.\label{fig:aucs}
+		\caption{Comparison of AUC of six models to predict student performance on test items. The results are from 10 fold cross-validation.\label{fig:aucs}
 		%\hl{I still think we need to compare to the French group.  Why not learning a BN with the prerequisite they learn? The reviewers complained about this before}
 		}
 	\end{figure} 	
@@ -968,16 +960,16 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	calculated from 10-fold cross-validation.
 	Results are presented in Figure~\ref{fig:aucs}. 
 	The error bars show the $95\%$ confidence intervals calculated from the cross-validation.
-	On both \texttt{Math-chap2} and \texttt{Math-chap3} data sets, the COMMAND models outperform the other four models.
+	On both \texttt{Math-chap2} and \texttt{Math-chap3} data sets, the COMMAND models outperform the other five models.
 	The \emph{fully connected} models are the second best performing models.
 	On \texttt{Math-chap2}, COMMAND model has an AUC of $0.803\pm0.008$ and the \emph{fully-connected} model has an AUC of $0.791\pm0.007$ (Figure~\ref{fig:auc-chap2}).
-	A paired $t$-test reveals that the AUCs of two models are statistically different with a $p$-value of $0.0022$.
+	A paired $t$-test reveals that the AUC difference of two models are statistically significant with a $p$-value of $0.0022$.
 	On \texttt{Math-chap3}, COMMAND model has an AUC of $0.775\pm0.007$ and the \emph{fully-connected} model has an AUC of $0.765\pm0.008$ (Figure~\ref{fig:auc-chap3}).
-	The AUCs of two models are also statistically different with a $p$-value of $0.01$.
+	The AUC difference of two models are also statistically significant with a $p$-value of $0.01$.
 	The \emph{fully connected} models are outperformed by the much simpler prerequisite models, suggesting overfitting.
 	
 	Using prerequisite structure to improve student models has been demonstrated in previous works \cite{kaser2014beyond, botelho2015prediction}.
-	In their works, the prerequisite structure are hand-engineered by human experts. But here, we demonstrate with fully data-driven prerequisite graphs.
+	In their works, the prerequisite structure are hand-engineered by human experts. But here, we demonstrate with fully data-driven prerequisite structures.
 	
 	%(Figure~\ref{fig:auc-chap2}), respectively. % and correspond to and no constraints, respectively.
 	%these models are: $0.691\pm0.011$ (\emph{majority}), $0.761\pm0.007$ (\emph{disconnected}), $0.796\pm0.006$ (\emph{chain}),  $0.804\pm0.007$ (\emph{prerequisite model with order constraint}), $0.807\pm0.006$ (\emph{prerequisite model without order constraint}), $0.794\pm0.007$ (\emph{fully connected}).
@@ -988,11 +980,11 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 	
 	
 	\section{Conclusion and Discussion \label{sec:conclusion}}
-	Discovering prerequisite structure of skills from data is challenging since skills are latent variables in the data.
+	Discovering prerequisite structures of skills from data is challenging since skills are latent variables in the data.
 	In this paper, we proposed COMMAND, a novel pipeline for learning the prerequisite dependencies of latent skill variables from students' response data on test items.
 	%We converted the prerequisite discovery problem to a problem of Bayesian network structure learning with latent variables.
 	%We introduced the Structural EM 
-	We demonstrated our approach using both synthetic and real-world data under different conditions such as data contains missing values or noises.
+	We demonstrated our approach using both synthetic and real-world data under different conditions such as data contain missing values or noises.
 	We show the discovered prerequisite models are useful for student modeling and remedial intervention by demonstrating its predictive performance on unseen data.
 	%Our approach differs from prior work in several ways.
 	%First, most of existing approaches focus on estimating the pairwise prerequisite relationships \cite{brunskill2010estimating,chen2015discovering}.
@@ -1022,9 +1014,8 @@ In all our experiment, we use the Bayesian information criterion (BIC) as the sc
 %	Further, these methods discover pair-wise relationships while COMMAND tries to optimize the full structure of the model.
 	
 	Studying prerequisite structure discovery in the context of Bayesian network structure learning is not new \cite{scheines2014discovering}.
-	However, existing approach does not discriminate between equivalent Bayesian network structures which represent different prerequisite structures.
-	In our approach, we address this problem by using an ad-hoc strategy to refine the prerequisite model with a constraint on conditional distributions tables. 
-	This strategy is quite empirical.
+	However, the approach in \cite{scheines2014discovering} does not discriminate between equivalent Bayesian network structures which represent different prerequisite structures.
+	In our approach, we address this problem by using an ad-hoc strategy to refine the prerequisite model.
 	In future, it would be wiser to refine the model within the Structural EM learning. 
 	For example, in Structural EM search, we can use a scoring function with an additional term that penalizes the structures that violate the CPT constraint. 
 	In such way, learning may be more accurate.
