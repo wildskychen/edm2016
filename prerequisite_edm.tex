@@ -39,6 +39,7 @@
 \usepackage{booktabs}
 \usepackage{textcomp}
 \usepackage{booktabs}
+\usepackage{comment}
 % Some optional stuff you might like/need.
 \usepackage{microtype} % Improved Tracking and Kerning
 % \usepackage[all]{hypcap}  % Fixes bug in hyperref caption linking
@@ -91,8 +92,7 @@
 
 \begin{document}
 	
-	\title{ Better Prerequisite Discovery From Data: \\
-	        Implementation and Evaluation Issues}
+	\title{Joint Discovery of Skill Prerequisite Graphs \\ and Student Model Parameters}
 	%\subtitle{[Extended Abstract]
 	%\titlenote{A full version of this paper is available as
 	%\textit{Author's Guide to Preparing ACM SIG Proceedings Using
@@ -144,23 +144,26 @@
 	
 \maketitle
 \begin{abstract}
-Understanding the prerequisites of skills is useful for designing curriculum, assessing mastery and for student modeling.
-For example,  in student modeling, prerequisites can be used for remediation of student knowledge.
+Skill prerequisite information is useful for tutoring systems that assess student knowledge or that provide remediation.
+%For example,  in student modeling, prerequisites can be used for remediation of student knowledge.
 %hand-engineered by subject matter experts in a costly and time-consuming process.
-Prerequisites are often encoded as graphs designed by subject matter expert in a costly and time-consuming process.
+These systems often encode prerequisites as graphs designed by subject matter experts in a costly and time-consuming process.
 In this paper, we introduce \emph{Combined student Modelling and prerequisite Discovery} (COMMAND), 
-a novel pipeline for inferring a prerequisite graph and a student model  from data.
+a novel algorithm for jointly inferring a prerequisite graph and a student model  from data.
 %COMMAND models prerequisite relations as a Bayesian network that can be used for student modeling.
 %Unlike prior work that evaluates prerequisite graphs using synthetic data, 
 %we develop a methodology to evaluate prerequisite graphs with data collected from students interacting with a digital learning environment.
 %Our experiments suggest that COMMAND improves on previously published approaches.
-By modeling the prerequisite relations as a Bayesian network, COMMAND estimates the causal structure and the probabilistic dependence among the skills 
+Learning a COMMAND model requires student performance data, a mapping of items to skills ($Q$-matrix), and, \hl{optionally?}, minimal domain knowledge encoded as constraints.
+These constraints \hl{may?} operationalize that  it is unlikely for a student to master a skill before mastering its prerequisites. 
+COMMAND learns the skill prerequisite relations as a Bayesian network (an 
+%stimates the causal structure and 
+encoding of the probabilistic dependence among the skills)
 via a two-stage learning process. 
-In the first stage, the Structural Expectation Maximization (Structural EM) algorithm is used to select a class of Bayesian networks based on distribution fitting of student data;
-in the second stage, a single Bayesian network structure is determined 
-based on the domain knowledge that it is unlikely for a student to master a skill before mastering its prerequisite skills. 
-We validate the proposed pipeline using simulations and real-world student data.
-Our experiments suggest that COMMAND improves on previously published approaches.
+In the first stage, it uses an algorithm called Structural Expectation Maximization  to select a class of equivalent Bayesian networks; % based on distribution fitting of student data;
+in the second stage, it uses the constraints to select a single  network.
+Our experiments on simulations and real student data suggest that COMMAND is \hl{significantly?} better than prior methods in the literature.
+
 % the pipeline estimates the causal structure and the probabilistic dependence among the skills 
 %via a two-stage learning process. 
 %In the first stage, the Structural Expectation Maximization (Structural EM) algorithm is used to select a class of Bayesian networks based on distribution fitting of student data;
@@ -180,24 +183,26 @@ Our experiments suggest that COMMAND improves on previously published approaches
 
 \section{Introduction}
 \label{sec:introduction}
-Students usually acquire skills in a meaningful sequence which starts from relatively simple concepts and gradually approaches more complex ones. 
+Course \textit{curricula} are usually organized in a meaningful sequence  that evolves from relatively simple lessons to more complex ones. 
 %Students learn much better when the skills are not randomly introduced 
 %but organized in a meaningful order which starts from relatively simple concepts and gradually introduces more complex ones. 
-Among these skills, some are preliminary of others such that they must be mastered before the subsequent concepts can be learned.
+Among these lessons, some are required to be mastered by the student  before the subsequent ones can be learned.
 For instance, students have to know how to do addition before they learn to do multiplication.
-%\hl{What is a prerequisite structure?}
-In this paper, we use prerequisite structure to refer to the relationships among skills that place strict constraints on the order in which these skills can be acquired. Determining the prerequisite relations among skills is crucial for designing curriculum and for assessing mastery.
+We refer as \textit{prerequisite structure} to the relationships among skills that place strict constraints on the order in which  skills can be acquired. 
 
-Prerequisite structures of skills are often hand-engineered by subject matter experts in a costly and time-consuming process. 
-Moreover, the prerequisite structures specified by the experts are seldom tested and might be unreliable in
-the sense that experts may hold ``blind spots".
-Nowadays, large volume of educational data has been cumulated through the digital tutoring systems.  
-Thus, learning prerequisite structures from educational data has drawn substantial interest from both education and data mining communities \cite{desmarais2006learned,vuong2010method, brunskill2010estimating,scheines2014discovering,chen2015discovering,piech2015deep}.
-However, inferring the prerequisite relationships between skills is still challenging since a student's knowledge of a skill is an unobserved latent variable in the data.
+Prerequisite structures are crucial for designing intelligent tutoring systems that assess student knowledge or that offer remediation interventions to students.
+Building such systems require prerequisite information that is often hand-engineered by subject matter experts in a costly and time-consuming process. 
+Moreover, the prerequisite structures specified by the experts are seldom tested and might be unreliable in the sense that experts may hold ``blind spots".
+
+%Nowadays, large volume of educational data has been cumulated through the digital tutoring systems.  
+%Thus, learning prerequisite structures from educational data has drawn substantial interest from both education and data mining communities \cite{desmarais2006learned,vuong2010method, brunskill2010estimating,scheines2014discovering,chen2015discovering,piech2015deep}.
+%However, inferring the prerequisite relationships between skills is still challenging since a student's knowledge of a skill is an unobserved latent variable in the data.
+
+Recent interest in computer assisted education promises large amounts of data from students solving \textit{items}--- questions, problems, parts of questions.
 In this paper, we introduce \emph{Combined student Modelling and prerequisite Discovery} (COMMAND), 
-a novel pipeline for discovering prerequisite structure of skills from data. 
-COMMAND models the prerequisite structure of the skills with a statistical model called Bayesian network.
-It then learns the Bayesian network through a two-stage process. 
+a novel \hl{pipeline} for simultaneously discovering prerequisite structure of skills and  student model parameters from student performance data
+(what items a learner answers correctly).
+Here,  the prerequisite structure suggests an ordering of skills, while the student model allows to make predictions of future student performance.
 
 %In education, remedial interventions attempt to eliminate the specific effect of lacking a competency.
 %Traditional and mastery-based educational strategies~\cite{bloom1968learning} often rely on remedial interventions when a learner is having a difficulty in the curriculum.
@@ -227,40 +232,52 @@ It then learns the Bayesian network through a two-stage process.
 %and in \S~\ref{sec:using_remind} we explain how to use it to offer remedial interventions.
 
 
-\section{Previous Work}
+\section{Relation to Prior Work}
 \label{sec:previous_work}
 
-Prior work have investigated the discovery of prerequisite structures from data.
-Many of these approaches discover the relationship of items without using latent variables.
-That is, the prerequisites do not use skill mappings, 
-and only find dependencies between items~\cite{desmarais2006learned,vuong2010method,piech2015deep}.
-\hl{What's wrong with finding dependencies between items?}
+Prior work has investigated %the discovery of prerequisite structures from data.
+%Many of these approaches discover 
+the prerequisite relationship of items without considering their mapping into skills~\cite{desmarais2006learned,vuong2010method}. %,piech2015deep}. I don't think this paper is relevant
+Item-to-skill mappings (also called $Q$-matrices) are desirable because they allow more interpretable diagnostic information.
+%That is, the prerequisites do not use skill mappings, 
+%and only find dependencies between items
 %These include the Partial Order Knowledge Structures (POKS) algorithm \cite{desmarais2006learned, pavlik2008using} to learn the item-item relationships
 %and an approach to determine the dependency structure of units in a curriculum with the student performance observed at the unit level \cite{vuong2011method}.
-  
 %To learn the relationships among skills from data where a student's knowledge of a skill is latent, 
-To account for latent skills, a mapping of items to skills (often called a $Q$-matrix) is used.
-In this setting, students are tested on items-questions, problems, parts of questions- 
-each of which requires one or multiple background skills.
-To estimate the relationship between two background skills, 
-Brunskill proposed a method to compute and compare the log likelihoods between the prerequisite model and the flat model (two skills are independent) to determine which model better fits the data \cite{brunskill2010estimating}. 
-Chen et al. \cite{chen2015discovering} used DINA (Deterministic Input Noisy AND) model to infer the knowledge states of students from their response data
-on test items and then used probabilistic association rules mining to determine the prerequisite relationships between two skills.
-However, these methods are only capable of estimating the pairwise relationships, instead of optimizing the full structure of the skills.
+%To account for latent skills, a mapping of items to skills (often called a $Q$-matrix) is used.
+%In this setting, students are tested on items-questions, problems, parts of questions- 
+%each of which requires one or multiple background skills.
+%To estimate the relationship between two background skills, 
+Because of this, follow-up work~\cite{brunskill2010estimating,chen2015discovering}  has addressed how to discover the prerequisite relationship of skills.
+They do so by comparing data of a pair of skills using  two different models.
+One model assumes that there is a prerequisite between the skill pair, and the other  assumes  independence.
+The two models can be compared using data likelihood~\cite{brunskill2010estimating} or  association rule mining~\cite{chen2015discovering}.
+These works --although very promising--   have  important limitations that we address in this paper.
+First,  they are only capable of estimating the pairwise relationships between skills and do not optimize the entire prerequisite structure.
+Second, it is unclear how to use the output of these prerequisite structures for student modeling, (i.e., to make predictions of future student performance).
+Third, they only provide a quantitative evaluation of simulated data.
+Overall, prior work has used real student data as an example, but has not developed a quantitative evaluation methodology.
+
 %Moreover, these approaches require many preconditions. For example, Brunskill's method assumes domain parameters called \emph{guess probability} and \emph{slip probability} are provided for each pair of item and skill.
 %Chen et al's approach requires manually specified thresholds to determine the existence of a prerequisite relationship.
 %The determination of these thresholds requires experts' intervention. 
 
-Bayesian network is a promising tool to model skill topologies as demonstrated in \cite{mislevy2000bayes,kaser2014beyond}. 
+A statistical technique called Bayesian network is useful to model skill structures~\cite{mislevy2000bayes}. 
 %\hl{I think Bob Mislevy had one of the first seminal papers of using BNs in education}
-Bayesian network allows the modeling of full structure of skills and can encode conditional independence relationships between the skills.
-This enables more accurate modeling of the probabilistic dependence between skills.
-By modeling prerequisite relations as a Bayesian network, Scheines et al. converted the problem of prerequisite structure discovery to a Bayesian network structural learning problem, and proposed an algorithm to find Bayesian network structures that fit the data \cite{scheines2014discovering}.
-However, the output from their algorithm is a class of Bayesian networks, which are equivalent in representing a probability distribution.
-These \emph{equivalent} Bayesian networks have the same skeleton but differ in the orientation of some edges, thus represent very different prerequisite structures.
-Scheines and his colleagues did not offer any solution to discriminate between these Bayesian networks.
+Bayesian networks allow  modeling the full structure of skills and can encode conditional independence  between the skills.
+%Modeling the full structure is appealing to enable more accurate modeling.
+Unfortunately, prior work with Bayesian networks requires a domain expert to design the prerequisite structures (e.g.,\hl{~\cite{kaser2014beyond}}),
+because automatic techniques have not been demonstrated to scale to real student data~\cite{scheines2014discovering}.
+We now describe the scalable COMMAND algorithm that discovers a Bayesian network that encodes the prerequisite structures.
+A secondary contribution of COMMAND is that  that it \hl{may} allow for minimal domain knowledge to discriminate between statistically equivalent  networks.
+
+%By modeling prerequisite relations as a Bayesian network, Scheines et al. converted the problem of prerequisite structure discovery to a Bayesian network structural learning problem, and proposed an algorithm to find Bayesian network structures that fit the data \cite{scheines2014discovering}.
+%However, the output from their algorithm is a class of Bayesian networks, which are equivalent in representing a probability distribution.
+%These \emph{equivalent} Bayesian networks have the same skeleton but differ in the orientation of some edges, thus represent very different prerequisite structures.
+%Scheines and his colleagues did not offer any solution to discriminate between these Bayesian networks.
 %Further, they validated their algorithm only on synthetic data
 
+\begin{comment}
 In this paper, we propose the \emph{Combined student Modelling and prerequisite Discovery} (COMMAND) pipeline 
 to infer the prerequisite structures of skills and a student model from data. 
 The pipeline also uses the promising Bayesian network model to represent the prerequisite relationships.
@@ -275,6 +292,8 @@ Structural EM outputs both the structure and the probability distribution (a set
 We demonstrate the robustness of our proposed approach on noisy data that contains unaccounted latent variables or missing values.
 Finally, we show the discovered prerequisite models are useful for student modeling.
 %\hl{ Please consider adding a table \url{https://docs.google.com/document/d/1BTNJSc67-vAUkSsDBp8b1OyvClQULx42b6PyQXQ3it4/edit}}
+\end{comment}
+
 
 \begin{figure}
 	\begin{center}
@@ -996,7 +1015,8 @@ In all our experiments, we use the Bayesian information criterion (BIC) as the s
 			\caption{\texttt{HED-chap3} AUC results.}
 			\label{fig:auc-chap3}
 		\end{subfigure}%
-		\caption{Comparison of AUC of six models to predict student performance on test items. The results are from 10 fold cross-validation.\label{fig:aucs}
+		\caption{Ten fold cross-validation results of evaluating the predictions of student performance. \hl{why does the y-axis start at 0.68? consider 0.5}
+		\label{fig:aucs}
 		%\hl{I still think we need to compare to the French group.  Why not learning a BN with the prerequisite they learn? The reviewers complained about this before}
 		}
 	\end{figure} 	
