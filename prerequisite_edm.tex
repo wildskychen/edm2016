@@ -148,21 +148,21 @@ Skill prerequisite information is useful for tutoring systems that assess studen
 %For example,  in student modeling, prerequisites can be used for remediation of student knowledge.
 %hand-engineered by subject matter experts in a costly and time-consuming process.
 These systems often encode prerequisites as graphs designed by subject matter experts in a costly and time-consuming process.
-In this paper, we introduce \emph{Combined student Modelling and prerequisite Discovery} (COMMAND), 
-a novel algorithm for jointly inferring a prerequisite graph and a student model  from data.
+In this paper, we introduce \emph{Combined student Modeling and prerequisite Discovery} (COMMAND), 
+a novel algorithm for jointly inferring a prerequisite graph and a student model from data.
 %COMMAND models prerequisite relations as a Bayesian network that can be used for student modeling.
 %Unlike prior work that evaluates prerequisite graphs using synthetic data, 
 %we develop a methodology to evaluate prerequisite graphs with data collected from students interacting with a digital learning environment.
 %Our experiments suggest that COMMAND improves on previously published approaches.
-Learning a COMMAND model requires student performance data, a mapping of items to skills ($Q$-matrix), and, \hl{optionally?}, minimal domain knowledge encoded as constraints.
-These constraints \hl{may?} operationalize that  it is unlikely for a student to master a skill before mastering its prerequisites. 
+Learning a COMMAND model requires student performance data and a mapping of items to skills ($Q$-matrix).
+%, and, \hl{optionally?}, minimal domain knowledge encoded as constraints.
+%These constraints \hl{may?} operationalize that  it is unlikely for a student to master a skill before mastering its prerequisites. 
 COMMAND learns the skill prerequisite relations as a Bayesian network (an 
-%stimates the causal structure and 
 encoding of the probabilistic dependence among the skills)
 via a two-stage learning process. 
-In the first stage, it uses an algorithm called Structural Expectation Maximization  to select a class of equivalent Bayesian networks; % based on distribution fitting of student data;
-in the second stage, it uses the constraints to select a single  network.
-Our experiments on simulations and real student data suggest that COMMAND is \hl{significantly?} better than prior methods in the literature.
+In the first stage, it uses an algorithm called Structural Expectation Maximization to select a class of equivalent Bayesian networks; % based on distribution fitting of student data;
+in the second stage, it uses the domain knowledge that it is unlikely for a student to master a skill before mastering its prerequisites to select a single Bayesian network.
+Our experiments on simulations and real student data suggest that COMMAND is better than prior methods in the literature.
 
 % the pipeline estimates the causal structure and the probabilistic dependence among the skills 
 %via a two-stage learning process. 
@@ -199,8 +199,8 @@ Moreover, the prerequisite structures specified by the experts are seldom tested
 %However, inferring the prerequisite relationships between skills is still challenging since a student's knowledge of a skill is an unobserved latent variable in the data.
 
 Recent interest in computer assisted education promises large amounts of data from students solving \textit{items}--- questions, problems, parts of questions.
-In this paper, we introduce \emph{Combined student Modelling and prerequisite Discovery} (COMMAND), 
-a novel \hl{pipeline} for simultaneously discovering prerequisite structure of skills and  student model parameters from student performance data
+In this paper, we introduce \emph{Combined student Modeling and prerequisite Discovery} (COMMAND), 
+a novel algorithm for simultaneously discovering prerequisite structure of skills and student model parameters from student performance data
 (what items a learner answers correctly).
 Here,  the prerequisite structure suggests an ordering of skills, while the student model allows to make predictions of future student performance.
 
@@ -252,7 +252,7 @@ Because of this, follow-up work~\cite{brunskill2010estimating,chen2015discoverin
 They do so by comparing data of a pair of skills using  two different models.
 One model assumes that there is a prerequisite between the skill pair, and the other  assumes  independence.
 The two models can be compared using data likelihood~\cite{brunskill2010estimating} or  association rule mining~\cite{chen2015discovering}.
-These works --although very promising--   have  important limitations that we address in this paper.
+These works --although very promising--   have important limitations that we address in this paper.
 First,  they are only capable of estimating the pairwise relationships between skills and do not optimize the entire prerequisite structure.
 Second, it is unclear how to use the output of these prerequisite structures for student modeling, (i.e., to make predictions of future student performance).
 Third, they only provide a quantitative evaluation of simulated data.
@@ -266,10 +266,10 @@ A statistical technique called Bayesian network is useful to model skill structu
 %\hl{I think Bob Mislevy had one of the first seminal papers of using BNs in education}
 Bayesian networks allow  modeling the full structure of skills and can encode conditional independence  between the skills.
 %Modeling the full structure is appealing to enable more accurate modeling.
-Unfortunately, prior work with Bayesian networks requires a domain expert to design the prerequisite structures (e.g.,\hl{~\cite{kaser2014beyond}}),
+Unfortunately, prior work with Bayesian networks requires a domain expert to design the prerequisite structures (e.g.,\cite{kaser2014beyond}),
 because automatic techniques have not been demonstrated to scale to real student data~\cite{scheines2014discovering}.
-We now describe the scalable COMMAND algorithm that discovers a Bayesian network that encodes the prerequisite structures.
-A secondary contribution of COMMAND is that  that it \hl{may} allow for minimal domain knowledge to discriminate between statistically equivalent  networks.
+We now describe the COMMAND algorithm that discovers a Bayesian network that encodes the prerequisite structure of skills.
+%A secondary contribution of COMMAND is that  that it \hl{may} allow for minimal domain knowledge to discriminate between statistically equivalent  networks.
 
 %By modeling prerequisite relations as a Bayesian network, Scheines et al. converted the problem of prerequisite structure discovery to a Bayesian network structural learning problem, and proposed an algorithm to find Bayesian network structures that fit the data \cite{scheines2014discovering}.
 %However, the output from their algorithm is a class of Bayesian networks, which are equivalent in representing a probability distribution.
@@ -415,7 +415,7 @@ An intuitive work-around is to use the Expectation Maximization (EM) to estimate
 However, EM in this case takes a large number (hundreds) of iterations to converge and each iteration requires Bayesian network inference, 
 which is computationally prohibitive.
 Further, we need run EM for each candidate structure. However, the number of possible Bayesian network structures is super-exponential with respect to the number of nodes.
-The Structural Expectation Maximization algorithm \cite{friedman1997learning,friedman1998bayesian} is an efficient alternative.
+The Structural Expectation Maximization algorithm \cite{friedman1997learning} is an efficient alternative.
 %We now summarize how it works.
 
 Structural EM is an iterative algorithm that  inputs a matrix $\mathbf{D}$ of student performance (see example Table~\ref{tbl:d-matrix}). %, where columns are the set of exercise items $\mathbf{I}$ and each row contains a student's performances on all these exercise items.
@@ -468,7 +468,7 @@ Bayesian network theory states that some Bayesian networks are statistically equ
 Thus, the output from Structure EM is an equivalence class that may contain many Bayesian network structures.
 These equivalent Bayesian networks have the same skeleton and the same $v$-structures\footnote{
 A $v$-structure in a Bayesian network $G$ is an ordered triple of nodes $(u,v,w)$ such that $G$ contains the directed edges $u\rightarrow v$ and $w\rightarrow v$ and $u$ and $w$ are not adjacent in $G$. \cite{verma1990equivalence}.}. 
-For instance, Figure~\ref{fig:equivnets} gives an example of two simple Bayesian networks that are not distinguishable by Structural EM algorithm.
+For instance, Figure~\ref{fig:equivnets} gives an example of two simple Bayesian networks that are not distinguishable by Structural EM algorithm and the method in \cite{scheines2014discovering}.
 They share the skeleton but differ in the orientation of the edge (we will call such an edge a reversible edge). They apparently represent two different prerequisite structures.
 
 \subsubsection{Use Domain Knowledge}
@@ -493,7 +493,7 @@ For this purpose, we can use the following domain knowledge.
 %The larger of these two probabilities, the more likely the relationship $S_1\rightarrow S_2$ holds.
 %Since here we are concerned with which direction the edge goes, we simply compare the products of two probabilities and select the direction that is more probable. 
 
-\textbf{Knowledge 1}. If $S_1$ is a prerequisite of $S_2$, i.e., $S_1\rightarrow S_2$, then $S_1=0\Rightarrow S_2=0$, which is equivalent to $S_2=1\Rightarrow S_1=1$.
+\textbf{Knowledge 1}. If $S_1$ is a prerequisite of $S_2$, i.e., $S_1\rightarrow S_2$, then $S_1=0\Rightarrow S_2=0$.%, which is equivalent to $S_2=1\Rightarrow S_1=1$.
 
 %If $S_1$ is a prerequisite of $S_2$, i.e., $S_1\rightarrow S_2$, then $P(S_1=1|S_2=1)= 1$ and $P(S_2=0|S_1=0)= 1$.
 \textbf{Knowledge 1} says if a skill $S_1$ is the prerequisite of a skill $S_2$,
@@ -503,7 +503,7 @@ This puts a constraint on the joint distribution encoded by the Bayesian network
 %We can check for any reversible edge $S_1-S_2$ in the Bayesian network, either $P(S_2=0|S_1=0)=1$ or $P(S_1=0|S_2=0)= 1$. 
 %If the former holds, $S_1\rightarrow S_2$; otherwise, $S_1\leftarrow S_2$.\footnote{$P(S_2=0|S_1=0)=1$ and $P(S_1=0|S_2=0)= 1$ can hold simultaneously under the condition
 %that} 
-In the case of determining the orientation of a reversible edge $S_1 - S_2$, we can check whether $P(S_2=0|S_1=0)=1$ or $P(S_1=0|S_2=0)=1$.\footnote{$P(S_2=0|S_1=0)=1$ and $P(S_1=0|S_2=0)=1$ can hold simultaneously. If $S_1\rightarrow S_2$ is true, $P(S_1=0|S_2=0)=1$ if $P(S_1=1)=0$ or $P(S_2=0|S_1=1)=0$. $P(S_1=1)=0$ means all students in the data do not know $S_1$. $P(S_2=0|S_1=1)=0$ means learning $S_2$ becomes trivial once they know $S_1$. Here, we assume these two extreme cases never happen.} 
+In the case of determining the orientation of a reversible edge $S_1 - S_2$, we can check whether $P(S_2=0|S_1=0)=1$ or $P(S_1=0|S_2=0)=1$.\footnote{$P(S_2=0|S_1=0)=1$ and $P(S_1=0|S_2=0)=1$ can hold simultaneously. If $S_1\rightarrow S_2$ is true, $P(S_1=0|S_2=0)=1$ if $P(S_1=1)=0$ or $P(S_2=0|S_1=1)=0$. $P(S_1=1)=0$ means all students in the data do not know $S_1$. $P(S_2=0|S_1=1)=0$ means learning $S_2$ becomes trivial once students know $S_1$. Here, we assume these two extreme cases never happen.} 
 However, in real situations, it is possible for a student to master the post-requisite even he does not know the prerequisite. 
 Further, there is always noise in the data. Thus, the conditional probability $P(S_2=0|S_1=0)$ is not exactly but close to 1.
 Thus, we use the following empirical rule: if $P(S_2=0|S_1=0)\ge P(S_1=0|S_2=0)$, we determine $S_1\rightarrow S_2$; 
@@ -751,7 +751,7 @@ In all our experiments, we use the Bayesian information criterion (BIC) as the s
 				Single Skill& Multiple Skill
 			\end{tabular}
 		\end{center}
-		%\vspace{-0.5em}
+		\vspace{-0.5em}
 		\caption{Comparison of $F_1$ scores for adjacency discovery (top row) and for edge orientation (bottom row). 
 			Horizontal lines are baseline $F_1$ scores computed for fully connected (complete) Bayesian networks.
 			The error bars show the $95\%$ confidence intervals, i.e., $\pm 1.96*$\texttt{SE}.} 
@@ -793,6 +793,7 @@ In all our experiments, we use the Bayesian information criterion (BIC) as the s
 						No Noise & Noisy
 					\end{tabular}
 				\end{center}
+				\vspace{-0.5em}
 				\caption{Results of adding systematic noise. Top: Comparison of $F_1$ scores for adjacency discovery. Horizontal lines are baseline $F_1$ scores computed for fully connected Bayesian networks. Bottom: Comparison of $F_1$ scores for edge orientation. }
 				\label{fig:f1-noisy} 
 			\end{figure}
@@ -857,7 +858,7 @@ In all our experiments, we use the Bayesian information criterion (BIC) as the s
 	
 	\subsection{Real Student Performance Data}
 	\label{sec:real}
-	We now evaluate COMMAND using two real-world student data sets.
+	We now evaluate COMMAND using two real-world data sets.
 	
 	\subsubsection{ECPE Data Set}
 	The ECPE (Examination for the Certification of Proficiency in English) data set was collected from a test by the English language Institute
@@ -932,7 +933,7 @@ In all our experiments, we use the Bayesian information criterion (BIC) as the s
 			\caption{Prerequisite structure learned for \texttt{Math-chap3}.}
 			\label{fig:hed_chap3_structure}
 		\end{subfigure}%
-		\caption{Prerequisite structures constructed by COMMAND for HED data sets.}
+		\caption{Prerequisite structures constructed by COMMAND for \texttt{Math} data sets.}
 		\label{fig:hed-structures} 
 	\end{figure}			
 	
@@ -1015,9 +1016,8 @@ In all our experiments, we use the Bayesian information criterion (BIC) as the s
 			\caption{\texttt{HED-chap3} AUC results.}
 			\label{fig:auc-chap3}
 		\end{subfigure}%
-		\caption{Ten fold cross-validation results of evaluating the predictions of student performance. \hl{why does the y-axis start at 0.68? consider 0.5}
+		\caption{Ten fold cross-validation results of evaluating the predictions of student performance. %\hl{why does the y-axis start at 0.68? consider 0.5}
 		\label{fig:aucs}
-		%\hl{I still think we need to compare to the French group.  Why not learning a BN with the prerequisite they learn? The reviewers complained about this before}
 		}
 	\end{figure} 	
 	
@@ -1047,11 +1047,21 @@ In all our experiments, we use the Bayesian information criterion (BIC) as the s
 	
 	\section{Conclusion and Discussion \label{sec:conclusion}}
 	Discovering prerequisite structures of skills from data is challenging since skills are latent variables in the data.
-	In this paper, we proposed COMMAND, a novel pipeline for learning the prerequisite dependencies of latent skill variables from students' response data on test items.
+	In this paper, we proposed COMMAND, a novel algorithm for jointly inferring a prerequisite graph and a student model from data.
 	%We converted the prerequisite discovery problem to a problem of Bayesian network structure learning with latent variables.
-	%We introduced the Structural EM 
+	%We introduced the Structural EM
 	We demonstrated our approach using both synthetic and real-world data under different conditions such as data contain missing values or noises.
 	We show the discovered prerequisite models are useful for student modeling and remedial intervention by demonstrating its predictive performance on unseen data.
+	
+	COMMAND has many advantages over prior work on prerequisite discovery. 
+	First, it tries to optimize the full structure of skills instead of only estimating the pairwise relationship. 
+	Second, it does not require tuning of many parameters.
+	For example, prior work~\cite{brunskill2010estimating} assumes domain parameters called \emph{guess probability} and \emph{slip probability}
+	are provided for each pair of item and skill while COMMAND learns these parameters automatically.
+	Similarly, more recent approaches~\cite{chen2015discovering} require manually specified thresholds to determine the existence of a prerequisite relationship.
+	Determining these thresholds requires experts' intervention. 
+	By contrast, the only required input of our algorithm is the observed student performance and the $Q$-matrix.
+	
 	%Our approach differs from prior work in several ways.
 	%First, most of existing approaches focus on estimating the pairwise prerequisite relationships \cite{brunskill2010estimating,chen2015discovering}.
 	%By contrast, we try to optimize the full structure of the model by converting the problem to a problem of Bayesian network structure learning with latent variables.
@@ -1059,7 +1069,7 @@ In all our experiments, we use the Bayesian information criterion (BIC) as the s
 	%However, due to the Markov equivalence between Bayesian network structures, the model output from their approach is inaccurate and can represent different prerequisite structures.
 	%Our approach discriminates between the equivalent Bayesian network using constraints derived from the domain knowledge of prerequisite relationship. 
 	
-%	We believe we are the first ones to propose a pipeline of learning the prerequisite dependencies from data and use it for student modeling. 
+	%We believe we are the first ones to propose an algorithm of learning the prerequisite dependencies from data and use it for student modeling. 
 %	Our work builds on prior work that discovers prerequisite from data \cite{desmarais2006learned,vuong2010method, brunskill2010estimating,scheines2014discovering,chen2015discovering,piech2015deep}.
 %	However, these approaches do not attempt to validate the prerequisite discovered using real student performance data.
 %	Our approach differs from prior work in several ways.
@@ -1077,11 +1087,13 @@ In all our experiments, we use the Bayesian information criterion (BIC) as the s
 %	Similarly, more recent approaches~\cite{chen2015discovering} require manually specified thresholds to determine the existence of a prerequisite relationship.
 %	The determination of these thresholds requires experts' intervention. 
 %	By contrast, the only required input of our algorithm is the observed student performance.
-%	Further, these methods discover pair-wise relationships while COMMAND tries to optimize the full structure of the model.
+%	Further, these methods discover pair-wise relationships while COMMAND tries to optimize the full structure of the model.	
 	
-	Studying prerequisite structure discovery in the context of Bayesian network structure learning is not new \cite{scheines2014discovering}.
-	However, the approach in \cite{scheines2014discovering} does not discriminate between equivalent Bayesian network structures which represent different prerequisite structures.
-	In our approach, we address this problem by using an ad-hoc strategy to refine the prerequisite model.
+	Learning prerequisite graph as a Bayesian network from data is not merely a Bayesian network structure learning problem 
+	because we have to discriminate between equivalent Bayesian network structures which represent different prerequisite structures.
+	%Studying prerequisite structure discovery in the context of Bayesian network structure learning is not new \cite{scheines2014discovering}.
+	%However, the approach in \cite{scheines2014discovering} does not discriminate between equivalent Bayesian network structures which represent different prerequisite structures.
+    We address this problem by using an ad-hoc strategy to refine the prerequisite model.
 	In future, it would be wiser to refine the model within the Structural EM learning. 
 	For example, in Structural EM search, we can use a scoring function with an additional term that penalizes the structures that violate the CPT constraint. 
 	In such way, learning may be more accurate.
