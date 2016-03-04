@@ -1093,7 +1093,7 @@ In all our experiments, we use the Bayesian information criterion (BIC) as the s
 	because we have to discriminate between equivalent Bayesian network structures which represent different prerequisite structures.
 	%Studying prerequisite structure discovery in the context of Bayesian network structure learning is not new \cite{scheines2014discovering}.
 	%However, the approach in \cite{scheines2014discovering} does not discriminate between equivalent Bayesian network structures which represent different prerequisite structures.
-    We addressed this problem by using domain knowledge encoded as a constraint on CPTs to refine the prerequisite model.
+    We addressed this problem by using domain knowledge encoded as a constraint on CPTs to refine the prerequisite models output from Structural EM.
 	In future, it would be wiser to refine the model within the Structural EM learning. 
 	For example, in Structural EM search, we can use a scoring function with an additional term that penalizes the structures that violate the CPT constraint. 
 	In such way, learning may be more accurate.
