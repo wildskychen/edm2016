@@ -363,7 +363,7 @@ Each entry in $\mathbf{D}$ encodes the performance of a student (see Table~\ref{
 		\State $DE\leftarrow \{\}$
 		\For{every reversible edge $S_i - S_j$ in $RE$}
 		%\State Compute $P(S_i=1|S_j=1)$, $P(S_j=0|S_i=0)$\\~~~~~$P(S_j=1|S_i=1)$ and $P(S_i=0|S_j=0)$
-		\State $ratio\leftarrow\frac{P(S_i=1|S_j=1)\cdot P(S_j=0|S_i=0)}{P(S_j=1|S_i=1)\cdot P(S_i=0|S_j=0)}$\footnote{}
+		\State $ratio\leftarrow\frac{P(S_j=0|S_i=0)}{P(S_i=0|S_j=0)}$\footnote{}
 		\If {$ratio\ge 1$}
 		\State $ratio^*=ratio$
 		\State $DE\leftarrow DE\cup S_i\rightarrow S_j$ 
