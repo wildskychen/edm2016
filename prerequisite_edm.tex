@@ -153,7 +153,7 @@ COMMAND learns the skill prerequisite relations as a Bayesian network (an
 encoding of the probabilistic dependence among the skills)
 via a two-stage learning process. 
 In the first stage, it uses an algorithm called Structural Expectation Maximization to select a class of equivalent Bayesian networks; % based on distribution fitting of student data;
-in the second stage, it uses the domain knowledge that it is unlikely for a student to master a skill before mastering its prerequisites to select a single Bayesian network.
+in the second stage, it uses  curriculum information to select a single Bayesian network.
 Our experiments on simulations and real student data suggest that COMMAND is better than prior methods in the literature.
 
 % the pipeline estimates the causal structure and the probabilistic dependence among the skills 
@@ -191,10 +191,9 @@ Moreover, the prerequisite structures specified by the experts are seldom tested
 %However, inferring the prerequisite relationships between skills is still challenging since a student's knowledge of a skill is an unobserved latent variable in the data.
 
 Recent interest in computer assisted education promises large amounts of data from students solving \textit{items}--- questions, problems, parts of questions.
+Performance data --what items a learner answers correctly-- can be used to create  models that  predict future  performance.
 In this paper, we introduce \emph{Combined student Modeling and prerequisite Discovery} (COMMAND), 
-a novel algorithm for simultaneously discovering prerequisite structure of skills and a student model from student performance data
-(what items a learner answers correctly).
-Here,  the prerequisite structure suggests an ordering of skills, while the student model allows to make predictions of future student performance.
+a novel algorithm for simultaneously discovering prerequisite structure of skills and a student model from student performance data.
 
 %In education, remedial interventions attempt to eliminate the specific effect of lacking a competency.
 %Traditional and mastery-based educational strategies~\cite{bloom1968learning} often rely on remedial interventions when a learner is having a difficulty in the curriculum.
@@ -227,9 +226,9 @@ Here,  the prerequisite structure suggests an ordering of skills, while the stud
 \section{Relation to Prior Work}
 \label{sec:previous_work}
 
-Prior work has investigated %the discovery of prerequisite structures from data.
+Prior work has investigated how to discover %the discovery of prerequisite structures from data.
 %Many of these approaches discover 
-the prerequisite relationship of items without considering their mapping into skills~\cite{desmarais2006learned,vuong2010method}. %,piech2015deep}. I don't think this paper is relevant
+ prerequisites among items without considering their mapping into skills~\cite{desmarais2006learned,vuong2010method}. %,piech2015deep}. I don't think this paper is relevant
 Item-to-skill mappings (also called $Q$-matrices) are desirable because they allow more interpretable diagnostic information.
 %That is, the prerequisites do not use skill mappings, 
 %and only find dependencies between items
@@ -259,7 +258,7 @@ A statistical technique called Bayesian network is useful to model skill structu
 Bayesian networks allow  modeling the full structure of skills and can encode conditional independence  between the skills.
 %Modeling the full structure is appealing to enable more accurate modeling.
 Unfortunately, prior work with Bayesian networks requires a domain expert to design the prerequisite structures (e.g.,\cite{kaser2014beyond}),
-because automatic techniques have not been demonstrated to scale to real student data~\cite{scheines2014discovering}.
+because automatic techniques have not been demonstrated with real student data~\cite{scheines2014discovering}.
 We now describe the COMMAND algorithm that discovers a Bayesian network that encodes the prerequisite structure of skills.
 %A secondary contribution of COMMAND is that  that it \hl{may} allow for minimal domain knowledge to discriminate between statistically equivalent  networks.
 
@@ -311,7 +310,10 @@ Figure~\ref{fig:smexample} illustrates an example of a prerequisite structure mo
 Here, we relate four test items with the skills of addition and multiplication.
 Addition is a prerequisite of multiplication thus there is an arrow from addition to multiplication.
 Modeling prerequisites as edges in a Bayesian network allows us to frame the discovery of the prerequisite relationships as the well-studied machine learning problem of
-learning a Bayesian network from data (with the presence of unobserved latent variables).
+learning a Bayesian network from data with the presence of unobserved latent variables.
+We represent the prerequisite structure using Bayesian networks that use latent binary variables to represent the student knowledge of a skill, 
+and observed binary variables that represent the student performance answering items (e.g, correct or incorrect).
+
 
 
 Algorithm~\ref{alg:COMMAND} describes the COMMAND pipeline.
@@ -381,17 +383,15 @@ Each entry in $\mathbf{D}$ encodes the performance of a student (see Table~\ref{
 \end{algorithm}
 \footnotetext{$P(S_i=a|S_j=b)$ can be computed using any Bayesian network inference algorithm such as Junction tree algorithm\cite{koller2009probabilistic}.}
 
-COMMAND relies on a popular machine learning algorithm called Structural Expectation Maximization (EM), which has not been used in educational applications. 
+COMMAND relies on a popular machine learning algorithm called \textit{Structural Expectation Maximization} (EM), which to the extent of our knowledge not been used in educational applications before. 
 A secondary contribution of our work is introducing Structural EM for learning Bayesian network structures from educational data.
 We now describe the  steps of COMMAND in detail.
 \subsection{Initial Bayesian Network}
 \label{sec:initial_bn}
-COMMAND represents the prerequisite structure using Bayesian networks that use latent binary variables to represent the student knowledge of a skill, 
-and observed binary variables that represent the student performance answering items (e.g, correct or incorrect).
-We first create an initial Bayesian network that complies to the skill-to-item $Q$-matrix.
+COMMAND first creates an initial Bayesian network from the  $Q$-matrix (without prerequisites).
 % and a set of constraints reflecting experts' belief
 %(step 1 of Algorithm~\ref{alg:remind}).
-That is, we create an arc to each item from each of its required skills and leave all skill variables disconnected.
+That is, it creates an arc to each item from each of its required skills,  but the skill variables  are left disconnected.
 With the created Bayesian network as an initial network, we learn the arcs between the skill variables using Structural EM.
 
 \subsection{Structural EM}
@@ -404,8 +404,7 @@ However, the conventional score-and-search approaches rely on efficient computat
 which is only feasible for problems where data contain observations for all variables in the Bayesian network.
 Unfortunately, our domain has skill variables that are not directly observed.
 An intuitive work-around is to use the Expectation Maximization (EM) to estimate the scoring function.
-However, EM in this case takes a large number (hundreds) of iterations to converge and each iteration requires Bayesian network inference, 
-which is computationally prohibitive.
+However, EM in this case takes a large number (hundreds) of iterations that require Bayesian network inference, which is computationally prohibitive.
 Further, we need run EM for each candidate structure. However, the number of possible Bayesian network structures is super-exponential with respect to the number of nodes.
 The Structural Expectation Maximization algorithm \cite{friedman1997learning} is an efficient alternative.
 %We now summarize how it works.
@@ -414,22 +413,30 @@ Structural EM is an iterative algorithm that  inputs a matrix $\mathbf{D}$ of st
 Figure~\ref{fig:sem} illustrates one iteration of the Structural EM algorithm. The relevant steps are also sketched in Algorithm~\ref{alg:COMMAND}. 
 Each iteration consists of an Expectation step (\emph{E-step}) and a Maximization step (\emph{M-step}). 
 %Structural EM calculates in each iteration a candidate model structure $G$ be by iterating over the Expectation and Maximization steps.
-In \emph{E-step}, we first find the maximum likelihood estimate $\theta^*$ of the parameters 
+In the \emph{E-step}, it first finds the maximum likelihood estimate $\theta^*$ of the parameters 
 for the current structure $G$ calculated from previous iteration using parametric EM.\footnote{In the first iteration, the current network is created from the initialization step.}
-We then do Bayesian inference to compute the expected values for the latent variables using the current model $(G,\theta^*)$
-and use the values to complete the data.
-In the \emph{M-step}, we use the conventional score-and-search approach to optimize the structure according to the completed data.
+It then does Bayesian inference to compute the expected values for the latent variables using the current model $(G,\theta^*)$
+and uses the values to complete the data.
+In the \emph{M-step}, it uses the conventional score-and-search approach to optimize the structure according to the completed data.
 Since the space of possible Bayesian network structures is super-exponential, 
 exhaustive search is intractable and local search algorithms, such as greedy hill-climbing search, are often used.
 The \emph{E-step} and \emph{M-step} interleave and iterate until some stop criterion is met, e.g., the scoring function does not change significantly.
 Contrast to the conventional score-and-search algorithm, Structural EM runs EM only on one structure in each iteration, thus is computationally more efficient.
 
-COMMAND's  initialization step
+We use an efficient implementation of Structural EM.
+Because COMMAND's initialization step
 %REMIND's implementation of prerequisite discovery we use Structural EM to learn the arcs between skills, but 
-fixes the arcs from skills to items according to the ${Q}$-matrix.
+fixes the arcs from skills to items according to the ${Q}$-matrix,
 %For this, we initialize the network as $G_0$ where skill variables and item variables are connected according to the ${Q}$-matrix, but skill variables are disconnected with each other. 
-In  the \emph{M-step} of our Structural EM implementation we only consider the candidate structures that comply with the ${Q}$-matrix.
+the \emph{M-step} only needs to consider the candidate structures that comply with the ${Q}$-matrix.
 %We believe that this reduction of the space of candidate models improves efficiency. %makes the Structural EM more efficient.
+An advantage of using Structural EM to discover the prerequisite relationship of skills is that it can be easily extended to incorporate domain knowledge.
+For example, we can  place constraints on the output structure to force or to disallow a skill to be a prerequisite of another skill.
+Another advantage of Structural EM is that it can be applied when there are missing data in the student performance matrix $\mathbf{D}$~ \cite{friedman1997learning}. 
+That is, some students do not answer all the items.
+% This ``missing values" problem is very common in real-world situations.
+%Structural EM can be applied to this type of data since it was originally developed to solve the "missing values" problem.
+The general idea is, in the \emph{E-step}, the algorithm also computes the expected values for missing data points, in addition for latent variables. 
 
 
 \begin{figure}%[!ht]
@@ -442,16 +449,10 @@ In  the \emph{M-step} of our Structural EM implementation we only consider the c
 	\label{fig:sem} 
 \end{figure} 
 
-An advantage of using Structural EM to discover the prerequisite relationship of skills, is that it is easily extensible to incorporate domain knowledge.
-For example, we can  place constraints on the output structure to force or to disallow a skill to be a prerequisite of another skill.
 %Consider, an intelligent tutor that teaches the content of a book. 
 %The book content structure provides a natural ordering of the chapters. 
 %We may use the book structure to engineer domain knowledge that an introductory chapter cannot be prerequisite of content that appears later in the book.
 
-Another advantage of Structural EM is that it can be applied when there are missing data in the student performance matrix $\mathbf{D}$. 
-That is, some students do not answer all the items thus some responses are missing. This ``missing values" problem is very common in real-world situations.
-Structural EM can be applied to this type of data since it was originally developed to solve the "missing values" problem \cite{friedman1997learning}.
-The general idea is, in the \emph{E-step}, the algorithm also computes the expected values for missing data points, in addition for latent variables. 
 
 \subsection{Discriminate Between Equivalent BNs}
 \label{sec:discriminatebns}
@@ -607,6 +608,7 @@ when an edge is oriented to $S_i\rightarrow S_j$, we remove all contradicting Ba
 Eventually only one Bayesian network structure stands. This procedure is detailed in the \emph{Discriminate between equivalent BNs} section of Algorithm~\ref{alg:COMMAND}.  
 The $EnumEquivalentDAGs(G_i)$ implements the algorithm of enumerating equivalent DAGs in \cite{chen2014finding}.
 
+\newpage
 \section{Evaluation}
 In \S~\ref{sec:synthetic}, we evaluate COMMAND with simulated data  to assess the quality of the discovered prerequisite structures.
 Then, in \S~\ref{sec:real} we use  data collected from real students.
@@ -1036,21 +1038,39 @@ In all our experiments, we use the Bayesian information criterion (BIC) as the s
 	
 	
 	\section{Conclusion and Discussion \label{sec:conclusion}}
-	Discovering prerequisite structures of skills from data is challenging since skills are latent variables in the data.
-	In this paper, we proposed COMMAND, a novel algorithm for jointly inferring a prerequisite graph and a student model from data.
+	%Discovering prerequisite structures of skills from data is challenging since skills are latent variables in the data.
+	The main contribution of our work is a novel algorithm that simultaneously infers a prerequisite graph and a student model from data.
 	%We converted the prerequisite discovery problem to a problem of Bayesian network structure learning with latent variables.
 	%We introduced the Structural EM
-	We demonstrated our approach using both synthetic and real-world data under different conditions such as data contain missing values or noises.
-	We show the discovered prerequisite models are useful for student modeling and remedial intervention by demonstrating its predictive performance on unseen data.
-	
-	COMMAND has many advantages over prior work on prerequisite discovery. 
-	First, it tries to optimize the full structure of skills instead of only estimating the pairwise relationship. 
-	Second, it does not require tuning of many parameters.
-	For example, prior work~\cite{brunskill2010estimating} assumes domain parameters called \emph{guess probability} and \emph{slip probability}
-	are provided for each pair of item and skill while COMMAND learns these parameters automatically.
-	Similarly, more recent approaches~\cite{chen2015discovering} require manually specified thresholds to determine the existence of a prerequisite relationship.
+	%We demonstrate our approach using both synthetic and real-world data.
+        We  extend  on prior work in significant ways.
+	For example, we optimize the full structure of skills instead of only estimating the pairwise relationships. 
+	Additionally, we believe COMMAND is easier to use than prior methods because  it does not require  manual tuning of  parameters.
+	Other methods~\cite{brunskill2010estimating} require  the  \emph{guess} and \emph{slip} probabilities to be  provided as input,
+	or alternatively~\cite{chen2015discovering} require fine-tuning of thresholds to determine the existence of a prerequisite relationship.
 	Determining these thresholds requires experts' intervention. 
-	By contrast, the only required input to our algorithm is the observed student performance and the $Q$-matrix.
+	In contrast, the only required input to our algorithm is the observed student performance and the $Q$-matrix.
+	
+	We provide evidence that COMMAND is useful for student modeling using synthetic data  and two real-world datasets.
+	Our results suggest that we significantly outperform over previously published methods.
+	We analyze how missing values and noise can affect the performance of COMMAND, but further research could investigate the efficacy of COMMAND in additional datasets.  % it under different conditions, such as  missing values and noise.
+	%Overall, we believe that our work is useful to improve student modeling.
+	%Future work can investigate how to use COMMAND to create remedial interventions.
+	A secondary contribution of our work is that we develop a methodology to evaluate automatically-discovered prerequisite structures on real student data.
+	
+	Learning a prerequisite graph is not merely discovering a Bayesian network--- 
+	   equivalent Bayesian network structures  in fact represent different prerequisite structures.
+	%Studying prerequisite structure discovery in the context of Bayesian network structure learning is not new \cite{scheines2014discovering}.
+	%However, the approach in \cite{scheines2014discovering} does not discriminate between equivalent Bayesian network structures which represent different prerequisite structures.
+        We address this problem by using domain knowledge to refine the prerequisite models output from Structural EM.
+%	In future, it would be wiser to refine the model within the Structural EM learning. 
+%	For example, in Structural EM search, we can use a scoring function with an additional term that penalizes the structures that violate the domain knowledge. 
+%	In such way, learning may be more accurate.
+	Overall, we believe that our work improves the state-of-the-art of student modeling.
+	
+
+	
+
 	
 	%Our approach differs from prior work in several ways.
 	%First, most of existing approaches focus on estimating the pairwise prerequisite relationships \cite{brunskill2010estimating,chen2015discovering}.
@@ -1078,15 +1098,6 @@ In all our experiments, we use the Bayesian information criterion (BIC) as the s
 %	The determination of these thresholds requires experts' intervention. 
 %	By contrast, the only required input of our algorithm is the observed student performance.
 %	Further, these methods discover pair-wise relationships while COMMAND tries to optimize the full structure of the model.	
-	
-	Learning prerequisite graph as a Bayesian network from data is not merely a Bayesian network structure learning problem 
-	because we have to discriminate between equivalent Bayesian network structures which represent different prerequisite structures.
-	%Studying prerequisite structure discovery in the context of Bayesian network structure learning is not new \cite{scheines2014discovering}.
-	%However, the approach in \cite{scheines2014discovering} does not discriminate between equivalent Bayesian network structures which represent different prerequisite structures.
-    We addressed this problem by using domain knowledge to refine the prerequisite models output from Structural EM.
-	In future, it would be wiser to refine the model within the Structural EM learning. 
-	For example, in Structural EM search, we can use a scoring function with an additional term that penalizes the structures that violate the domain knowledge. 
-	In such way, learning may be more accurate.
 	
 
 	%\hl{Two parts: Prerequisite discovery and student modeling with multiple kcs}
