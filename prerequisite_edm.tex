@@ -423,7 +423,7 @@ exhaustive search is intractable and local search algorithms, such as greedy hil
 The \emph{E-step} and \emph{M-step} interleave and iterate until some stop criterion is met, e.g., the scoring function does not change significantly.
 Contrast to the conventional score-and-search algorithm, Structural EM runs EM only on one structure in each iteration, thus is computationally more efficient.
 
-We use an efficient implementation of Structural EM.
+We use an efficient implementation of Structural EM available online called LibB\footnote{\url{http://compbio.cs.huji.ac.il/LibB/programs.html}}.
 Because COMMAND's initialization step
 %REMIND's implementation of prerequisite discovery we use Structural EM to learn the arcs between skills, but 
 fixes the arcs from skills to items according to the ${Q}$-matrix,
@@ -432,7 +432,7 @@ the \emph{M-step} only needs to consider the candidate structures that comply wi
 %We believe that this reduction of the space of candidate models improves efficiency. %makes the Structural EM more efficient.
 An advantage of using Structural EM to discover the prerequisite relationship of skills is that it can be easily extended to incorporate domain knowledge.
 For example, we can  place constraints on the output structure to force or to disallow a skill to be a prerequisite of another skill.
-Another advantage of Structural EM is that it can be applied when there are missing data in the student performance matrix $\mathbf{D}$~ \cite{friedman1997learning}. 
+Another advantage of Structural EM is that it can be applied when there are missing data in the student performance matrix $\mathbf{D}$~\cite{friedman1997learning}. 
 That is, some students do not answer all the items.
 % This ``missing values" problem is very common in real-world situations.
 %Structural EM can be applied to this type of data since it was originally developed to solve the "missing values" problem.
