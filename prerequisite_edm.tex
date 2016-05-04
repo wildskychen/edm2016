@@ -256,7 +256,7 @@ Overall, prior work has used real student data as an example, but has not develo
 %Chen et al's approach requires manually specified thresholds to determine the existence of a prerequisite relationship.
 %The determination of these thresholds requires experts' intervention. 
 
-A statistical technique called Bayesian network is useful to model skill structures~\cite{mislevy2000bayes}. 
+A statistical formalism called Bayesian network is useful to model skill structures~\cite{mislevy2000bayes}. 
 %\hl{I think Bob Mislevy had one of the first seminal papers of using BNs in education}
 Bayesian networks allow  modeling the full structure of skills and can encode conditional independence  between the skills.
 %Modeling the full structure is appealing to enable more accurate modeling.
@@ -301,8 +301,8 @@ Finally, we show the discovered prerequisite models are useful for student model
 
 \section{The COMMAND Algorithm}
 \label{sec:pre_pipeline}
-COMMAND learns the prerequisite structure of the skills from data with a statistical model called Bayesian network \cite{pearl2000causality,spirtes2001causation}.
-Bayesian networks are also called probabilistic graphical models  because they can  be represented visually and algebraically as a collection of nodes and edges.
+COMMAND learns the prerequisite structure of the skills from data with a statistical model called Bayesian network \cite{pearl1988probabilistic,spirtes2001causation}.
+Bayesian networks are one type of probabilistic graphical models because they can be represented visually and algebraically as a collection of nodes and edges.
 A tutorial description of Bayesian networks in education can be found elsewhere \cite{almond2015bayesian}, 
 but for now we say that they are often described with two components: 
 the  nodes represent the random variables, which we describe using \textit{conditional probability tables} (CPTs),
@@ -655,7 +655,7 @@ In all our experiments, we use the Bayesian information criterion (BIC) as the s
 		\end{minipage}	
 		\caption{Three different DAGs between latent skill variables.  Item nodes are omitted.}
 		\label{fig:syn-nets}
-		\vspace{-1em}
+		%\vspace{-1em}
 		%\end{center} 
 	\end{figure} 
 	
@@ -781,6 +781,7 @@ In all our experiments, we use the Bayesian information criterion (BIC) as the s
 				\begin{center}
 					\includegraphics[width=.95\linewidth]{figures/studentability.png}
 				\end{center}
+				\vspace{-1em}
 				\caption{Evaluation of COMMAND with noisy data} 
 				\label{fig:stuabilitymodel}
 			\end{figure}
@@ -802,7 +803,7 @@ In all our experiments, we use the Bayesian information criterion (BIC) as the s
 			\begin{figure}[!ht]
 				\begin{center}
 					\centering
-					\begin{tabular}{>{\centering}m{1.5in} >{\centering\arraybackslash}m{1.5in}}
+					\begin{tabular}{>{\centering}m{1.55in} >{\centering\arraybackslash}m{1.55in}}
 						\includegraphics[width=1.1\linewidth]{figures/F1A_single_missing.eps} &\includegraphics[width=1.1\linewidth]{figures/F1O_single_missing.eps}\\
 					\end{tabular}
 				\end{center}
@@ -818,7 +819,8 @@ In all our experiments, we use the Bayesian information criterion (BIC) as the s
 						\end{center}
 						\vspace{-1em}
 						\caption{Comparison of COMMAND and PARM for discovering prerequisite relationships in Structure 3. The cutoff values used for PARM experiments are: $ minsup=0.125$, $minconf=0.76$, $minprob=0.9$.}
-						\label{fig:f1-parm} 
+						\label{fig:f1-parm}
+						\vspace{-1em} 
 					\end{figure} 			
 	
 	Figure~\ref{fig:f1-noisy} compares the results where noise was introduced or not.
@@ -841,22 +843,29 @@ In all our experiments, we use the Bayesian information criterion (BIC) as the s
 	However, COMMAND is still able to recover the true structures for Structure 1 and 2 even when the data contain up to $30\%$ missing values. 
 	
 	\subsubsection{Comparison With PARM}
-	Chen and his colleagues proposed to use Probabilistic Association Rules Mining (PARM) for discovering the prerequisite relationships between skills \cite{chen2015discovering}.
+	Chen et al. proposed to use Probabilistic Association Rules Mining (PARM) for discovering the prerequisite relationships between skills \cite{chen2015discovering}.
+	In their approach, a prerequisite relationship $S_1\rightarrow S_2$ is discovered if
+	$P(P(S_1=1,S_2=1) \ge minsup \wedge P(S_1=1|S_2=1)\ge minconf) \ge minprob$ and $P(P(S_1=0,S_2=0) \ge minsup \wedge P(S_2=0|S_1=0)\ge minconf) \ge minprob$, 
+	where $minsup$, $minconf$ and $minprob$ are pre-specified constants between 0 and 1.
 	Since PARM discovers pair-wise prerequisite relationship, instead of constructing the full structure,
 	we only compare COMMAND with PARM for discovering the pair-wise relationships.
 	That is, we derived pair-wise prerequisite relationships from the Bayesian network structure and see how the two approaches discover these relationships.
 	Here we simulated data from Structure 3 (Figure~\ref{fig:syn-nets}(c)) (with single-skilled items), which has 21 pair-wise prerequisite relationships.
 	When experimenting with PARM, the following cutoff values were used: $ minsup=0.125$, $minconf=0.76$, $minprob=0.9$.
+	%\footnote{In PARM, a prerequisite relationship $S_1\rightarrow S_2$ is discovered if $P\left(P(S_1=1,S2=1) \ge minsup \wedge P(S_1=1|S_2=1)\ge ninconf\right) \ge minprob$ and $P(P(S_1=0,S_2=0) \ge minsup \wedge P(S_2=0|S_1=0)\ge minconf) \ge minprob$.} 
 	These values have been used in the simulation experiments in \cite{chen2015discovering}.
 	The evaluation metric used is $F_1=\frac{2*TPR*TDR}{TPR+TDR}$, where $TPR=\frac{\text{\# of correct relationships learned}}{\text{\# of relationships in true model}}$
 	and $TDR=\frac{\text{\# of correct relationships learned}}{\text{\# of relationships in learned model}}$.
 	The result is presented in Figure~\ref{fig:f1-parm}. It shows that COMMAND significantly outperforms PARM for sample size $n\ge 500$.
 	The low $F_1$ score by PARM is caused by low $TPR$, i.e., PARM failed to discover many prerequisite relationships (data not shown).
 	It is speculated that selecting a different set of cutoff values for PARM might improve the results.
-	However, determining these thresholds is not trivial and requires experts' intervention. By contrast, COMMAND does not require tuning of many parameters.  
-	Another problem of PARM is that it does not respect transitivity. 
-	That is, PARM may not identify $S_1\rightarrow S_3$ even when it has discovered $S_1\rightarrow S_2$ and $S_2\rightarrow S_3$.
-	This partially explains the low $TPR$.	 
+	However, determining these thresholds is not trivial and requires experts' intervention. By contrast, COMMAND does not require tuning of many parameters.
+	Further, the low $TPR$ is partially due to that PARM does not respect transitivity.
+	That is, given the cutoff values, PARM may reject $S_1\rightarrow S_3$ even it has discovered $S_1\rightarrow S_2$ and $S_2\rightarrow S_3$.
+	%This seems quite 
+	%Another problem of PARM is that it does not respect transitivity. 
+	%That is, PARM may not identify $S_1\rightarrow S_3$ even when it has discovered $S_1\rightarrow S_2$ and $S_2\rightarrow S_3$.
+	%This partially explains the low $TPR$.	 
 	
 	\subsection{Real Student Performance Data}
 	\label{sec:real}
@@ -866,7 +875,20 @@ In all our experiments, we use the Bayesian information criterion (BIC) as the s
 	The ECPE (Examination for the Certification of Proficiency in English) data set was collected from a test by the English language Institute
 	of the University of Michigan to examine individual cognitive skills required for understanding English language grammar \cite{templin2014hierarchical}.
 	It contains a sample of 2922 examinees who were tested by 28 items on 3 skills, i.e., \emph{morphosyntactic rules} ($S_1$), \emph{cohesive rules} ($S_2$) 
-	and \emph{lexical rules} ($S_3$). Each item requires either one or two of the three skills. 				
+	and \emph{lexical rules} ($S_3$). Each item requires either one or two of the three skills.
+	
+				\begin{figure}[!th]
+					\begin{center}
+						\centering
+						\includegraphics[width=0.95\linewidth]{figures/ecpe_results.png}
+					\end{center}
+					\vspace{-1em}
+					\caption{Result on ECPE data set. $S_1$: Morphosyntactic rules; $S_2$: Cohesive rules; $S_3$: Lexical rules. 
+						The estimated conditional probability tables (CPTs) are shown correspondingly.}
+					\label{fig:ecpe-result} 
+					%\vspace{-0.5em}
+				\end{figure}
+					 				
 	The prerequisite structure output from COMMAND is depicted in Figure~\ref{fig:ecpe-result}. The estimated conditional probability tables (CPT) are showed correspondingly.
 	The discovered structure says \emph{lexical rules} is a prerequisite of \emph{cohesive rules} and \emph{morphosyntactic rules}, 
 	and \emph{cohesive rules} is a prerequisite of \emph{morphosyntactic rules}. 
@@ -878,18 +900,6 @@ In all our experiments, we use the Bayesian information criterion (BIC) as the s
 %	which provides insights into how prerequisites impact the post-requisite probabilistically. 
 	We clearly see that the probability of student mastering a skill increases when the student has acquired more prerequisites of the skill.
 	
-				\begin{figure}[!th]
-					\begin{center}
-						\centering
-						\includegraphics[width=0.95\linewidth]{figures/ecpe_results.png}
-					\end{center}
-					\vspace{-0.5em}
-					\caption{Result on ECPE data set. $S_1$: Morphosyntactic rules; $S_2$: Cohesive rules; $S_3$: Lexical rules. 
-						The estimated conditional probability tables (CPTs) are shown correspondingly.}
-					\label{fig:ecpe-result} 
-					\vspace{-1em}
-				\end{figure}
-
 	
 	\subsubsection{Math Data Set}
 	We now evaluate COMMAND using data collected from a commercial non-adaptive tutoring system.
@@ -975,7 +985,7 @@ In all our experiments, we use the Bayesian information criterion (BIC) as the s
 	
 	\paragraph{Predictive Performance of Prerequisite Models}
 	\label{sec:predictive_performance}
-	COMMAND not only discovers the topological relationships among skills, but also outputs a statistical model in the form of Bayesian network.
+	COMMAND not only discovers the prerequisite relationships among skills, but also outputs a statistical model in the form of Bayesian network.
 	This statistical model can be used for inference and predictive modeling.
 	For example, given a student's response to a set of items, we can infer the student's knowledge status of a skill.
 	This is very useful for remedial intervention, i.e., discovering when a student is lacking background knowledge. 
@@ -1015,18 +1025,21 @@ In all our experiments, we use the Bayesian information criterion (BIC) as the s
 		\begin{subfigure}[b]{0.48\linewidth}
 			\centering
 			\includegraphics[width=1.1\linewidth]{figures/hed_chap2_30_auc.eps}
+			%\vspace{-1em}
 			\caption{\texttt{Math-chap2} AUC results. }
 			\label{fig:auc-chap2}
 		\end{subfigure}
 		\begin{subfigure}[b]{0.48\linewidth}
 			\centering
 			\includegraphics[width=1.1\linewidth]{figures/hed_chap3_33_auc.eps}
+			%\vspace{-1em}
 			\caption{\texttt{Math-chap3} AUC results.}
 			\label{fig:auc-chap3}
 		\end{subfigure}%
-		\caption{Ten fold cross-validation results of evaluating the predictions of student performance. %\hl{why does the y-axis start at 0.68? consider 0.5}
+		%\vspace{-0.5em}
+		\caption{Ten fold cross-validation results of evaluating the predictions of student performance.} %\hl{why does the y-axis start at 0.68? consider 0.5}
 		\label{fig:aucs}
-		}
+		%\vspace{-1em}
 	\end{figure} 	
 	
 	The parameters of these baseline Bayesian network predictors are estimated from the data.
@@ -1146,7 +1159,7 @@ In all our experiments, we use the Bayesian information criterion (BIC) as the s
 % REFERENCES FORMAT
 % References must be the same font size as other body text.
 \bibliographystyle{SIGCHI-Reference-Format}
-{
+{\small
 	\bibliography{references}
 }	
 
