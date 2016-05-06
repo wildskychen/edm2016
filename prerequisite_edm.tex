@@ -193,7 +193,9 @@ Moreover, the prerequisite structures specified by the experts are seldom tested
 %However, inferring the prerequisite relationships between skills is still challenging since a student's knowledge of a skill is an unobserved latent variable in the data.
 
 Recent interest in computer assisted education promises large amounts of data from students solving \textit{items}--- questions, problems, parts of questions.
-Performance data --what items a learner answers correctly-- can be used to create  models that  predict future  performance.
+Performance data --what items a learner answers correctly-- can be used to create models that predict future performance.
+These models are often called student models, an estimate of the skill proficiency of the students \cite{vanlehn1988student}.
+Student models are important because they enable adapting the instruction to the student's need.
 In this paper, we introduce \emph{Combined student Modeling and prerequisite Discovery} (COMMAND), 
 a novel algorithm for simultaneously discovering prerequisite structure of skills and a student model from student performance data.
 
@@ -293,10 +295,12 @@ Finally, we show the discovered prerequisite models are useful for student model
 	\begin{center}
 		\includegraphics[width=.90\linewidth]{figures/studentmodel.png}
 	\end{center}
+	\vspace{-0.5em}
 	\caption{A hypothetical Bayesian network. %learned with Algorithm~\ref{alg:COMMAND}. 
 		Solid edges are given by item to skill mapping, dashed edges between skill variables are to be discovered from data.
 		The conditional probability tables are to be learned.}
-	\label{fig:smexample} 
+	\label{fig:smexample}
+	\vspace{-1em} 
 \end{figure} 
 
 \section{The COMMAND Algorithm}
@@ -328,7 +332,7 @@ Each entry in $\mathbf{D}$ encodes the performance of a student (see Table~\ref{
 %Then, it  learns the parameters of a student model  that infers what skills a student has mastered.
 
 
-\begin{table}[htb]%\small
+\begin{table}[htb]\small
 	\centering
 	\caption{Example student performance matrix to use with COMMAND.  The performance of a student is encoded with 1 if the student answered correctly the item, and 0 otherwise. \label{tbl:d-matrix}}
 	\begin{tabular}{@{}lllll@{}}
@@ -376,13 +380,14 @@ Each entry in $\mathbf{D}$ encodes the performance of a student (see Table~\ref{
 		\State $\forall G\in EC$, remove $G$ from $EC$ if $e\notin G$
 		\EndIf
 		\EndWhile
-		\State return $EC$ 		
+		\State return $EC$
 		\tikzmark{lsmbot}
 	\end{algorithmic}
 	\AddNote{inittop}{initbot}{right}{\footnotesize Initialization}
 	\AddNote{semtop}{sembot}{right}{\footnotesize Structural EM}
 	\AddNote{lsmtop}{lsmbot}{right}{\footnotesize Discriminate between equivalent BNs}
 	\caption{The COMMAND algorithm  \label{alg:COMMAND}}
+	\vspace{-1em}
 \end{algorithm}
 \footnotetext{$P(S_i=a|S_j=b)$ can be computed using any Bayesian network inference algorithm such as Junction tree algorithm\cite{koller2009probabilistic}.}
 
@@ -418,9 +423,9 @@ Each iteration consists of an Expectation step (\emph{E-step}) and a Maximizatio
 %Structural EM calculates in each iteration a candidate model structure $G$ be by iterating over the Expectation and Maximization steps.
 In the \emph{E-step}, it first finds the maximum likelihood estimate $\Theta^*$ of the CPTs 
 for the current structure $G$ calculated from previous iteration using parametric EM.\footnote{In the first iteration, the current network is created from the initialization step.}
-It then does Bayesian inference to compute the expected values for the latent variables using the current model $(G,\Theta^*)$
+It then does Bayesian inference to compute the expected values for the latent variables using the current model $(G,\Theta^*)$, 
 and uses the values to complete the data.
-In the \emph{M-step}, it uses the conventional score-and-search approach to optimize the structure according to the completed data.
+In the \emph{M-step}, it uses the conventional score-and-search approach to optimize the structure according to the completed data (as if the latent variables were observed).
 Since the space of possible Bayesian network structures is super-exponential, 
 exhaustive search is intractable and local search algorithms, such as greedy hill-climbing search, are often used.
 The \emph{E-step} and \emph{M-step} interleave and iterate until some stop criterion is met, e.g., the scoring function does not change significantly.
@@ -449,7 +454,8 @@ The general idea is, in the \emph{E-step}, the algorithm also computes the expec
 		\includegraphics[width=1.0\linewidth]{figures/sem.png}
 	\end{center}
 	\caption{\small An illustration of the Structure EM algorithm to discover the structure of the latent variables. $G$ represents the DAG structure. $\Theta$ is the set of conditional probability tables (CPTs).}
-	\label{fig:sem} 
+	\label{fig:sem}
+	\vspace{-1em} 
 \end{figure} 
 
 %Consider, an intelligent tutor that teaches the content of a book. 
