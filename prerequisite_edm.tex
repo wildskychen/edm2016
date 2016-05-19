@@ -314,9 +314,6 @@ Finally, we show the discovered prerequisite models are useful for student model
 \end{comment}
 
 
-
-
-
 \section{The COMMAND Algorithm}
 \label{sec:pre_pipeline}
 COMMAND learns the prerequisite structure of the skills from data with a statistical model called Bayesian network \cite{pearl1988probabilistic,spirtes2001causation}.
@@ -341,12 +338,12 @@ and observed binary variables that represent the student performance answering i
 	\begin{center}
 		\includegraphics[width=.90\linewidth]{figures/studentmodel.png}
 	\end{center}
-	\vspace{-0.5em}
+	%\vspace{-0.5em}
 	\caption{A hypothetical Bayesian network. %learned with Algorithm~\ref{alg:COMMAND}. 
 		Solid edges are given by item to skill mapping, dashed edges between skill variables are to be discovered from data.
 		The conditional probability tables are to be learned.}
 	\label{fig:smexample}
-	\vspace{-1em} 
+	%\vspace{-1em} 
 \end{figure}
 
 Algorithm~\ref{alg:COMMAND} describes the COMMAND pipeline.
@@ -447,6 +444,7 @@ COMMAND uses Structural EM to learn arcs  (prerequisites) between the skill vari
 		%\fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
 		\includegraphics[width=1.0\linewidth]{figures/sem.png}
 	\end{center}
+	\vspace{-0.5em}
 	\caption{\small An illustration of the Structure EM algorithm to discover the structure of the latent variables. $G$ represents the DAG structure. $\Theta$ is the set of conditional probability tables (CPTs).}
 	\label{fig:sem}
 	\vspace{-1em} 
@@ -817,7 +815,7 @@ In all our experiments, we use BIC as the scoring function in Structural EM .
 			Horizontal lines are baseline scores for fully-connected (complete) networks.
 			The error bars show the $95\%$ confidence intervals, i.e., $\pm 1.96*$\texttt{SE}.} 
 		\label{fig:f1-single-multi}
-		%\vspace{-1em}
+		\vspace{-1em}
 	\end{figure} 
 
 	
@@ -855,7 +853,7 @@ In all our experiments, we use BIC as the scoring function in Structural EM .
 						No Noise & Noisy
 					\end{tabular}
 				\end{center}
-				\vspace{-1em}
+				%\vspace{-1em}
 				\caption{Results of adding systematic noise. Top: Comparison of $F_1$ scores for adjacency discovery. Horizontal lines are baseline $F_1$ scores computed for fully connected Bayesian networks. Bottom: Comparison of $F_1$ scores for edge orientation. }
 				\label{fig:f1-noisy} 
 			\end{figure}
@@ -889,22 +887,11 @@ In all our experiments, we use BIC as the scoring function in Structural EM .
 						\includegraphics[width=1.1\linewidth]{figures/F1A_single_missing.eps} &\includegraphics[width=1.1\linewidth]{figures/F1O_single_missing.eps}\\
 					\end{tabular}
 				\end{center}
-				\vspace{-1em}
+				%\vspace{-1em}
 				\caption{Results of learning with missing data. Left: Comparison of $F_1$ scores for adjacency discovery. Horizontal lines are baseline $F_1$ scores computed for fully connected Bayesian networks. Right: Comparison of $F_1$ scores for edge orientation. }
 				\label{fig:f1-missing} 
 			\end{figure}
-
-			\begin{figure}[ht]
-						\begin{center}
-							\centering
-							\includegraphics[width=0.55\linewidth]{figures/F1_parm.eps}
-						\end{center}
-						\vspace{-1em}
-						\caption{Comparison of COMMAND and PARM for discovering prerequisite relationships in Structure 3. %The cutoff values used for PARM experiments are: $ minsup=0.125$, $minconf=0.76$, $minprob=0.9$.
-						}
-						\label{fig:f1-parm}
-						\vspace{-1em} 
-					\end{figure} 				
+ 				
 	\subsubsection{Comparison With Prior Work}
 	The Probabilistic Association Rules Mining (PARM) is a recent algorithm for discovering the prerequisite relationships between skills~\cite{chen2015discovering}.
 	In this approach, a prerequisite relationship $S_1\rightarrow S_2$ is considered to exist if
@@ -940,7 +927,17 @@ In all our experiments, we use BIC as the scoring function in Structural EM .
 	%That is, PARM may not identify $S_1\rightarrow S_3$ even when it has discovered $S_1\rightarrow S_2$ and $S_2\rightarrow S_3$.
 	%This partially explains the low $TPR$.	 
 	
-			
+			\begin{figure}[ht]
+				\begin{center}
+					\centering
+					\includegraphics[width=0.55\linewidth]{figures/F1_parm.eps}
+				\end{center}
+				\vspace{-1em}
+				\caption{Comparison of COMMAND and PARM for discovering prerequisite relationships in Structure 3. %The cutoff values used for PARM experiments are: $ minsup=0.125$, $minconf=0.76$, $minprob=0.9$.
+				}
+				\label{fig:f1-parm}
+				%\vspace{-1em} 
+			\end{figure}			
 			
 		
 					
