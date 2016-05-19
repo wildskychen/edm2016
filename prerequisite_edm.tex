@@ -247,14 +247,19 @@ Because of this, follow-up work~\cite{brunskill2010estimating,chen2015discoverin
 %They do so by comparing two models that represent different relationships between two skills.
 For this,  we can measure if a model that assumes a dependency between the two skills explain the data better than a model that assumes independence. %if there is a prerequisite relationship between a pair of skills or not.
 This comparison can be done with data likelihood~\cite{brunskill2010estimating} or association rule mining~\cite{chen2015discovering}.
-Although very promising, these methods have important limitations that we address in this paper.
-First,  they are only capable of estimating the pairwise relationships between skills and do not optimize the entire prerequisite structure.
-%\hl{explain this more, give a concrete example of where this fails?}
-Second, it is unclear how to use the output of these prerequisite structures for student modeling, (i.e., to make predictions of future student performance).
-Third, they do not provide a quantitative evaluation using real student data.
+Although  promising, prior methods have   limitations that we address:
+%\vspace{-5mm}
+\begin{enumerate}%[itemsep=0mm]
+\item We estimate the global prerequisite structure, not just the pairwise relationships. % between skills and do not optimize the entire prerequisite structure.
+For example, suppose we want to discover the prerequisites of three skills for English learning ($S_1$:syntax, $S_2$:cohesion and $S_3$:lexical rules).
+If we use prior methods we discover that the three skills are related among each other.
+%but we are unable to know if syntax requires directly both cohesion and lexical rules, or if the effect is through an indirect pre
+However, pairwise relations are unable to tell if the relationship is due to indirect effects  (e.g, $S_3 \rightarrow S_2 \rightarrow S_1$), or due to a skill with two prerequisites (e.g, $S_3 \rightarrow S_1 \wedge S_2 \rightarrow S_1$). 
+\item It is unclear how to use the output of these prerequisite structures for student modeling. For example,  to make predictions of future student performance.
+\item Prior work does  not provide a quantitative evaluation using real student data. Overall, prior work has used real student data for examples, but without any quantitative evaluation methodology that can help compare different techniques.
+\end{enumerate}
 %Prior work has evaluated their methods using simulated data, and limited student data for examples.
-Overall, prior work has used real student data for examples, but without any quantitative evaluation methodology that can help compare different techniques.
-
+%\vspace{-5mm}
 %Moreover, these approaches require many preconditions. For example, Brunskill's method assumes domain parameters called \emph{guess probability} and \emph{slip probability} are provided for each pair of item and skill.
 %Chen et al's approach requires manually specified thresholds to determine the existence of a prerequisite relationship.
 %The determination of these thresholds requires experts' intervention. 
@@ -292,19 +297,9 @@ Finally, we show the discovered prerequisite models are useful for student model
 \end{comment}
 
 
-\begin{figure}
-	\begin{center}
-		\includegraphics[width=.90\linewidth]{figures/studentmodel.png}
-	\end{center}
-	\vspace{-0.5em}
-	\caption{A hypothetical Bayesian network. %learned with Algorithm~\ref{alg:COMMAND}. 
-		Solid edges are given by item to skill mapping, dashed edges between skill variables are to be discovered from data.
-		The conditional probability tables are to be learned.}
-	\label{fig:smexample}
-	\vspace{-1em} 
-\end{figure} 
 
-\newpage
+
+
 \section{The COMMAND Algorithm}
 \label{sec:pre_pipeline}
 COMMAND learns the prerequisite structure of the skills from data with a statistical model called Bayesian network \cite{pearl1988probabilistic,spirtes2001causation}.
@@ -315,6 +310,8 @@ the  nodes represent the random variables, which we describe using \textit{condi
 and the set of edges that form a \textit{directed acyclic graph} (DAG) represent the conditional dependencies between the variables.
 Bayesian networks are a flexible tool that can be used to model an entire curriculum.
 
+ 
+
 Figure~\ref{fig:smexample} illustrates an example of a prerequisite structure modeled with a Bayesian network.
 Here, we relate four test items with the skills of addition and multiplication.
 Addition is a prerequisite of multiplication thus there is an arrow from addition to multiplication.
@@ -323,6 +320,17 @@ learning a Bayesian network from data with the presence of unobserved latent var
 We represent the prerequisite structure using Bayesian networks that use latent binary variables to represent the student knowledge of a skill (i.e., mastery or not mastery), 
 and observed binary variables that represent the student performance answering items (i.e., correct or incorrect).
 
+\begin{figure}
+	\begin{center}
+		\includegraphics[width=.90\linewidth]{figures/studentmodel.png}
+	\end{center}
+	\vspace{-0.5em}
+	\caption{A hypothetical Bayesian network. %learned with Algorithm~\ref{alg:COMMAND}. 
+		Solid edges are given by item to skill mapping, dashed edges between skill variables are to be discovered from data.
+		The conditional probability tables are to be learned.}
+	\label{fig:smexample}
+	\vspace{-1em} 
+\end{figure}
 
 Algorithm~\ref{alg:COMMAND} describes the COMMAND pipeline.
 The input to COMMAND is a  matrix $\mathbf{D}$ with $n \times p$ dimensions,
@@ -841,8 +849,8 @@ In all our experiments, we use BIC as the scoring function in Structural EM .
 	Interestingly, the noise  actually improves COMMAND's  accuracy.
 	This improvement is more evident when the sample size is small (see $n=150$).
 	%We hypothesize that adding this variable is actually removing noise by separating students by ability, which can help the structure learning.
-	We hypothesize that the correlations caused by \emph{StudentAbility} node would cause the algorithm to add more edges between skill nodes.
-	For small sample size, this might help because BIC score tends to give sparse structures (output structure has less edges than the true structure).
+	For smaller sample sizes, Structural EM usually discovers less relationships than actually exist, because BIC prefers sparse structures.
+	We hypothesize that the correlations caused by \emph{StudentAbility} node would cause Structural EM to add ``stronger'' edges between skill nodes, resulting in higher F1. % (output structure has less edges than the true structure).
 	%the existence of additional hidden variable increases the variance of the data which can help the structure learning.
 	%remove noise by separating students by ability
 	%\hl{Can you show the ``true" Bayes net (i.e, with student ability node) and the one we are trying to learn?}
@@ -885,17 +893,22 @@ In all our experiments, we use BIC as the scoring function in Structural EM .
 	In this approach, a prerequisite relationship $S_1\rightarrow S_2$ is considered to exist if
 	$P(S_1=1,S_2=1) \ge minsup \wedge P(S_1=1|S_2=1)\ge minconf) \ge minprob$ and $P(P(S_1=0,S_2=0) \ge minsup \wedge P(S_2=0|S_1=0)\ge minconf) \ge minprob$, 
 	where $minsup$, $minconf$ and $minprob$ are pre-specified constants between 0 and 1.
-	PARM is limited to discovering pair-wise prerequisite relationships (instead of constructing the full structure).
-	Because of this, we compare COMMAND with PARM for discovering the pair-wise relationships.
+
+	
 	We simulate data from Structure 3 from Figure~\ref{fig:syn-nets}(c) (with single-skilled items), which has 21 pair-wise prerequisite relationships.
 	We derive pair-wise prerequisite relationships from this network  and see how the two approaches discover these relationships.
 	When experimenting with PARM, we use $ minsup=0.125$, $minconf=0.76$, $minprob=0.9$, because they were suggested by the authors~\cite{chen2015discovering}.
 	%\footnote{In PARM, a prerequisite relationship $S_1\rightarrow S_2$ is discovered if $P\left(P(S_1=1,S2=1) \ge minsup \wedge P(S_1=1|S_2=1)\ge ninconf\right) \ge minprob$ and $P(P(S_1=0,S_2=0) \ge minsup \wedge P(S_2=0|S_1=0)\ge minconf) \ge minprob$.} 
 	%These values have been used in the simulation experiments in 
 	
-	We compare two approaches using 
-	$F_1=\frac{2*TPR*TDR}{TPR+TDR}$, where $TPR=\frac{\text{\# of correct relationships learned}}{\text{\# of relationships in true model}}$
-	and $TDR=\frac{\text{\# of correct relationships learned}}{\text{\# of relationships in learned model}}$.
+	%We compare two approaches using 
+	%$F_1=\frac{2*TPR*TDR}{TPR+TDR}$, where $TPR=\frac{\text{\# of correct relationships learned}}{\text{\# of relationships in true model}}$
+	%and $TDR=\frac{\text{\# of correct relationships learned}}{\text{\# of relationships in learned model}}$.
+	
+	PARM is limited to discovering pair-wise prerequisite relationships (instead of constructing the full structure).
+	To make a fair comparison,  we evaluate how accurately COMMAND and PARM  discover relationship pairs.
+	For this, we use the F1 metric in Table~\ref{tbl:ar}, but we count pairs of  \textit{related skills} instead of adjacencies.
+	Two skills are related if one is a descendant of the other one.
 	Figure~\ref{fig:f1-parm} shows that COMMAND  outperforms PARM, and the difference becomes significant for sample size $n\ge 500$.
 	The low $F_1$ score of by PARM is %caused by low $TPR$, i.e., 
 	%PARM 
