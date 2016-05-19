@@ -246,10 +246,10 @@ Because of this, follow-up work~\cite{brunskill2010estimating,chen2015discoverin
 %They do so by comparing data of a pair of skills using  two different models.
 %They do so by comparing two models that represent different relationships between two skills.
 For this,  we can measure if a model that assumes a dependency between the two skills explain the data better than a model that assumes independence. %if there is a prerequisite relationship between a pair of skills or not.
-This comparison can be done with data likelihood~\cite{brunskill2010estimating} or  association rule mining~\cite{chen2015discovering}.
+This comparison can be done with data likelihood~\cite{brunskill2010estimating} or association rule mining~\cite{chen2015discovering}.
 Although very promising, these methods have important limitations that we address in this paper.
 First,  they are only capable of estimating the pairwise relationships between skills and do not optimize the entire prerequisite structure.
-\hl{explain this more, give a concrete example of where this fails?}
+%\hl{explain this more, give a concrete example of where this fails?}
 Second, it is unclear how to use the output of these prerequisite structures for student modeling, (i.e., to make predictions of future student performance).
 Third, they do not provide a quantitative evaluation using real student data.
 %Prior work has evaluated their methods using simulated data, and limited student data for examples.
@@ -324,7 +324,6 @@ We represent the prerequisite structure using Bayesian networks that use latent 
 and observed binary variables that represent the student performance answering items (i.e., correct or incorrect).
 
 
-
 Algorithm~\ref{alg:COMMAND} describes the COMMAND pipeline.
 The input to COMMAND is a  matrix $\mathbf{D}$ with $n \times p$ dimensions,
 representing $n$ students, answering $p$ items.
@@ -335,7 +334,6 @@ $Q$-matrices are often designed by subject matter experts but automatic methods 
 
 %COMMAND first constructs the prerequisite relationships among the set of skills using constraints.
 %Then, it  learns the parameters of a student model  that infers what skills a student has mastered.
-
 
 \begin{table}[htb]\small
 	\centering
@@ -369,8 +367,8 @@ $Q$-matrices are often designed by subject matter experts but automatic methods 
 		\State $DE\leftarrow \{\}$
 		\For{every reversible edge $S_i - S_j$ in $RE$}
 		%\State Compute $P(S_i=1|S_j=1)$, $P(S_j=0|S_i=0)$\\~~~~~$P(S_j=1|S_i=1)$ and $P(S_i=0|S_j=0)$
-		\LineComment {Can be computed using  Junction tree:}
-		\State $ratio\leftarrow\frac{P(S_j=0|S_i=0)}{P(S_i=0|S_j=0)} $%\footnote{}
+		%\LineComment {Can be computed using  Junction tree:}
+		\State $ratio\leftarrow\frac{P(S_j=0|S_i=0)}{P(S_i=0|S_j=0)} $\footnote{}
 		\If {$ratio\ge 1$}
 		\State $ratio^*=ratio$
 		\State $DE\leftarrow DE\cup S_i\rightarrow S_j$ 
@@ -395,11 +393,14 @@ $Q$-matrices are often designed by subject matter experts but automatic methods 
 	\caption{The COMMAND algorithm  \label{alg:COMMAND}}
 	\vspace{-1em}
 \end{algorithm}
+\footnotetext{$P(S_i=a|S_j=b)$ can be computed using any Bayesian network inference algorithm such as Junction tree algorithm\cite{koller2009probabilistic}.}
 
-%\footnotetext{$P(S_i=a|S_j=b)$ can be computed using any Bayesian network inference algorithm such as Junction tree algorithm\cite{koller2009probabilistic}.}
-
-COMMAND relies on a popular machine learning algorithm called \textit{Structural Expectation Maximization} (Structural EM), which to the extent of our knowledge has not been used in educational applications before. 
-Structural EM extends the Expectation Maximization (EM) algorithm to allow efficient discovery of edges between nodes, and not just inferring the CPT. \hl{is this ok? a reviewer didn't get that Structural EM wasn't EM :-P}
+COMMAND relies on a popular machine learning algorithm called \textit{Structural Expectation Maximization} (Structural EM), 
+which to the extent of our knowledge has not been used in educational applications before. 
+Structural EM extends the Expectation Maximization (EM) algorithm to allow efficient structure learning of Bayesian networks 
+when there are latent variables or missing values in the data.
+%discovery of edges between nodes, and not just inferring the CPTs. 
+%\hl{is this ok? a reviewer didn't get that Structural EM wasn't EM :-P}
 A secondary contribution of our work is introducing Structural EM for learning Bayesian network structures from educational data.
 We now describe the  steps of COMMAND in detail.
 
@@ -414,6 +415,17 @@ COMMAND uses Structural EM to learn arcs  (prerequisites) between the skill vari
 
 \subsection{Structural EM}
 \label{sec:sem}
+
+\begin{figure}%[!ht]
+	\begin{center}
+		%\framebox[4.0in]{$\;$}
+		%\fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
+		\includegraphics[width=1.0\linewidth]{figures/sem.png}
+	\end{center}
+	\caption{\small An illustration of the Structure EM algorithm to discover the structure of the latent variables. $G$ represents the DAG structure. $\Theta$ is the set of conditional probability tables (CPTs).}
+	\label{fig:sem}
+	\vspace{-1em} 
+\end{figure} 
 
 A common solution to learning a Bayesian network from data is the score-and-search approach \cite{cooper1992bayesian,heckerman1997bayesian}.
 This approach uses a scoring function (like  the Bayesian Information Criterion (BIC)) to measure the fitness of a Bayesian network structure to the observed data, 
@@ -456,18 +468,6 @@ That is, some students do not answer all the items.
 %Structural EM can be applied to this type of data since it was originally developed to solve the "missing values" problem.
 The general idea is, in the \emph{E-step}, the algorithm also computes the expected values for missing data points, in addition for latent variables. 
 
-
-\begin{figure}%[!ht]
-	\begin{center}
-		%\framebox[4.0in]{$\;$}
-		%\fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
-		\includegraphics[width=1.0\linewidth]{figures/sem.png}
-	\end{center}
-	\caption{\small An illustration of the Structure EM algorithm to discover the structure of the latent variables. $G$ represents the DAG structure. $\Theta$ is the set of conditional probability tables (CPTs).}
-	\label{fig:sem}
-	\vspace{-1em} 
-\end{figure} 
-
 %Consider, an intelligent tutor that teaches the content of a book. 
 %The book content structure provides a natural ordering of the chapters. 
 %We may use the book structure to engineer domain knowledge that an introductory chapter cannot be prerequisite of content that appears later in the book.
@@ -479,7 +479,7 @@ The general idea is, in the \emph{E-step}, the algorithm also computes the expec
 Structural EM selects a Bayesian network model based on how well it explains the distribution of the data. 
 Bayesian network theory states that some Bayesian networks are statistically equivalent in representing the data.
 Thus, the output from Structural EM is actually an equivalence class (EC) that may contain many Bayesian network structures\footnote{Structural EM outputs a DAG. However,  the scoring function  does not discriminate between the many DAGs of the equivalence class.}.
-These equivalent Bayesian networks have the same skeleton and the same $v$-structures\footnote{A $v$-structure with nodes $u,v,w$ are the directed edges $u\rightarrow v$ and $w\rightarrow v$ \cite{verma1990equivalence}.}. 
+These equivalent Bayesian networks have the same skeleton and the same $v$-structures\footnote{A $v$-structure with nodes $u,v,w$ in a DAG are the directed edges $u\rightarrow v$ and $w\rightarrow v$ and $u$ and $w$ are not adjacent in the DAG~\cite{verma1990equivalence}.}. 
 For instance, Figure~\ref{fig:equivnets} gives an example of a simple equivalence class containing three Bayesian networks 
 that are not distinguishable by Structural EM algorithm and the method in \cite{scheines2014discovering}.
 They share the skeleton but differ in the orientation of at least one of the edges (we will call such an edge a reversible edge). 
@@ -508,13 +508,13 @@ They apparently represent three different prerequisite structures.
 	
 \subsubsection{Domain Knowledge}
 \label{sec:usedomain}
-To determine a unique structure, we use  a heuristic based in domain knowledge to determine the orientation of each reversible edge.
-For  convenience in notation, let's assume that the random variables that represent skill proficiency can take two values: 0 if the skills is not mastered, and 1 if the skill is mastered.
+To determine a unique structure, we use a heuristic based in domain knowledge to determine the orientation of each reversible edge.
+For convenience in notation, let's assume that the random variables that represent skill proficiency can take two values: 0 if the skills is not mastered, and 1 if the skill is mastered.
 Our assumption is that if a skill $S_1$ is the prerequisite of a skill $S_2$, a student can not master skill $S_2$ before she masters $S_1$.
 More formally:
 
 \textbf{Assumption.} If $S_1$ is a prerequisite of $S_2$ (i.e., $S_1\rightarrow S_2$), then $S_1=0\Rightarrow S_2=0 $. %, which is equivalent to $S_2=1\Rightarrow S_1=1$.
-In other words $P(S_2=\text{0}|S_1=0)=1$.
+In other words, $P(S_2=\text{0}|S_1=0)=1$.
 
 Our assumption implies  that  $S_1$ cannot be a prerequisite of $S_2$ if $P(S_2=0|S_1=0)=1$ does not hold.
 This puts a constraint on the joint distribution encoded by the Bayesian network to be learned.
@@ -546,7 +546,7 @@ This puts a constraint on the joint distribution encoded by the Bayesian network
 %If the former holds, $S_1\rightarrow S_2$; otherwise, $S_1\leftarrow S_2$.\footnote{$P(S_2=0|S_1=0)=1$ and $P(S_1=0|S_2=0)= 1$ can hold simultaneously under the condition
 %that} 
 For example, consider the case of choosing the orientation of a reversible edge $S_1 - S_2$ from $S_1 \leftarrow S_2$ or  $S_1 \rightarrow S_2$.
-We can check whether $P(S_2=0|S_1=0)=1$ or $P(S_1=0|S_2=0)=1$
+We can check whether $P(S_2=0|S_1=0)=1$ or $P(S_1=0|S_2=0)=1$.
 However, it is possible that our assumption does not hold, and a student got to master a skill even if he does not know the prerequisite. 
 Moreover, because of statistical noise,  the conditional probability $P(S_2=0|S_1=0)$ may not  be exactly 1.
 Thus, we use the following empirical rule: 
@@ -558,9 +558,9 @@ The intuition behind this rule is that the conditional probability $P(S_2=0|S_1=
 The larger of this probability, the more likely the relationship $S_1\rightarrow S_2$ holds.
 Since here we are concerned with which direction the edge goes, we simply compare the two probabilities and select the direction that is more probable. 
 Note  that $P(S_2=0|S_1=0)=1$ and $P(S_1=0|S_2=0)=1$ may hold simultaneously. 
-If $S_1\rightarrow S_2$ is true, then $P(S_1=0|S_2=0)$ is 1 only if $P(S_1=1)=0$ or if $P(S_2=0|S_1=1)$ is 0 \hl{why??}. 
-If $P(S_1=1)$ is 0, this implies that no student knows $S_1$. 
-If $P(S_2=0|S_1=1)$ is 0 means that learning $S_2$ becomes trivial once students know $S_1$. 
+If $S_1\rightarrow S_2$ is true, $P(S_1=0|S_2=0)=1$ only if $P(S_1=1)=0$ or if $P(S_2=0|S_1=1)=0$.\footnote{Since $P(S_1=0|S_2=0)=\frac{P(S_2=0|S_1=0)P(S_1=0)}{P(S_2=0|S_1=0)P(S_1=0)+P(S_2=0|S_1=1)P(S_1=1)}$, $P(S_1=0|S_2=0)=1$ only if $P(S_2=0|S_1=1)P(S_1=1)=0$.} 
+If $P(S_1=1)=0$, this implies that no student knows $S_1$. 
+If $P(S_2=0|S_1=1)=0$, it means that learning $S_2$ becomes trivial once students know $S_1$. 
 For simplicity, we ignore this extreme case.
 
 
@@ -643,8 +643,9 @@ In this paper, we take an ad-hoc strategy to determine the orientation for all r
 For each reversible edge $S_i-S_j$, we let $ratio^*=ratio$ if $ratio \ge 1$ and $ratio^*=\frac{1}{ratio}$ otherwise. 
 The larger the $ratio^*$ is, the more confidently when we decide the orientation.
 We sort the list of reversible edges by $ratio^*$ in descending order. We then orient the edges by this ordering.
-When one edge is oriented, the constraint is propagated to other reversible edges. 
-\hl{<- how do this different procedures differ? ->}
+%When one edge is oriented, the constraint is propagated to other reversible edges.
+%That is, for any of the remaining reversible edges, 
+%\hl{<- how do this different procedures differ? ->}
 In our implementation, we use the following strategy: 
 we first enumerate all equivalent Bayesian networks and make them a list of candidates; 
 when an edge is oriented to $S_i\rightarrow S_j$, we remove all contradicting Bayesian networks from the list.
@@ -773,8 +774,8 @@ In all our experiments, we use BIC as the scoring function in Structural EM .
 	We consider two situations where different types of $Q$-matrix are used. In the first situation,
 	each item node maps to exactly one skill node. In the second one, each item maps to 1-3 skills. 
 	Figure~\ref{fig:f1-single-multi} compares the $F_1$ of adjacency discovery and edge orientation results under the two types of $Q$-matrices.
-	With only 500 observations, COMMAND improves on a fully connected Bayesian Network baseline trained with \hl{$n$ ??} observations.
-	COMMAND's  accuracy  improves with the amount of data, but its accuracy is slightly lower when the $Q$-matrix contains items that require more than one skill. % than single-skill $Q$-matrix.
+	With only 500 observations, COMMAND improves on a fully connected Bayesian network baseline.
+	COMMAND's  accuracy improves with the amount of data, but its accuracy is slightly lower when the $Q$-matrix contains items that require more than one skill. % than single-skill $Q$-matrix.
 	A possible explanation for this is that multi-skill items may introduce more spurious correlations in the data.
 	With just 2000 observations, COMMAND  recovers the true structures almost perfectly.
 	
@@ -840,8 +841,8 @@ In all our experiments, we use BIC as the scoring function in Structural EM .
 	Interestingly, the noise  actually improves COMMAND's  accuracy.
 	This improvement is more evident when the sample size is small (see $n=150$).
 	%We hypothesize that adding this variable is actually removing noise by separating students by ability, which can help the structure learning.
-	We hypothesize that the correlations caused by \emph{StudentAbility} node would be compensated by adding more edges between skill nodes \hl{rewrite, what is a compensated correlation??}. 
-	%For small sample size, this might help because BIC score tends to \hl{prefer} sparse structures.
+	We hypothesize that the correlations caused by \emph{StudentAbility} node would cause the algorithm to add more edges between skill nodes.
+	For small sample size, this might help because BIC score tends to give sparse structures (output structure has less edges than the true structure).
 	%the existence of additional hidden variable increases the variance of the data which can help the structure learning.
 	%remove noise by separating students by ability
 	%\hl{Can you show the ``true" Bayes net (i.e, with student ability node) and the one we are trying to learn?}
@@ -881,7 +882,7 @@ In all our experiments, we use BIC as the scoring function in Structural EM .
 					\end{figure} 				
 	\subsubsection{Comparison With Prior Work}
 	The Probabilistic Association Rules Mining (PARM) is a recent algorithm for discovering the prerequisite relationships between skills~\cite{chen2015discovering}.
-	In this approach, a prerequisite relationship $S_1\rightarrow S_2$ is considered if
+	In this approach, a prerequisite relationship $S_1\rightarrow S_2$ is considered to exist if
 	$P(S_1=1,S_2=1) \ge minsup \wedge P(S_1=1|S_2=1)\ge minconf) \ge minprob$ and $P(P(S_1=0,S_2=0) \ge minsup \wedge P(S_2=0|S_1=0)\ge minconf) \ge minprob$, 
 	where $minsup$, $minconf$ and $minprob$ are pre-specified constants between 0 and 1.
 	PARM is limited to discovering pair-wise prerequisite relationships (instead of constructing the full structure).
@@ -892,9 +893,9 @@ In all our experiments, we use BIC as the scoring function in Structural EM .
 	%\footnote{In PARM, a prerequisite relationship $S_1\rightarrow S_2$ is discovered if $P\left(P(S_1=1,S2=1) \ge minsup \wedge P(S_1=1|S_2=1)\ge ninconf\right) \ge minprob$ and $P(P(S_1=0,S_2=0) \ge minsup \wedge P(S_2=0|S_1=0)\ge minconf) \ge minprob$.} 
 	%These values have been used in the simulation experiments in 
 	
-	We compare our approaches using 
+	We compare two approaches using 
 	$F_1=\frac{2*TPR*TDR}{TPR+TDR}$, where $TPR=\frac{\text{\# of correct relationships learned}}{\text{\# of relationships in true model}}$
-	and $TDR=\frac{\text{\# of correct relationships learned}}{\text{\# of relationships in learned model}}$. \hl{is this different from the Table? how and why?} 
+	and $TDR=\frac{\text{\# of correct relationships learned}}{\text{\# of relationships in learned model}}$.
 	Figure~\ref{fig:f1-parm} shows that COMMAND  outperforms PARM, and the difference becomes significant for sample size $n\ge 500$.
 	The low $F_1$ score of by PARM is %caused by low $TPR$, i.e., 
 	%PARM 
@@ -918,7 +919,7 @@ In all our experiments, we use BIC as the scoring function in Structural EM .
 	We now evaluate COMMAND using two real-world data sets.	
 	
 	\subsubsection{English Data Set}
-	The Examination for the Certification of Proficiency in English (ECPE) datase describes 2922 examines in their understanding of English language grammar \cite{templin2014hierarchical}.
+	The Examination for the Certification of Proficiency in English (ECPE) dataset describes 2922 examines in their understanding of English language grammar \cite{templin2014hierarchical}.
 	%was collected from a test by the English language Institute... of the University of Michigan to examine individual cognitive skills required for 
 	The dataset includes student performance in 28 items on 3 skills ($S_1$: morphosyntactic rules, $S_2$: cohesive rules,
 	and $S_3$:lexical rules). Each item requires either one or two of the three skills.
@@ -941,7 +942,7 @@ In all our experiments, we use BIC as the scoring function in Structural EM .
 	The pair-wise prerequisite relationships totally agrees with the findings in \cite{templin2014hierarchical} and that by the PARM method in \cite{chen2015discovering}.
 	%Note that PARM discovered the three pairwise prerequisite relationships but COMMAND output a full structure.
 	Our model infers a complete DAG, suggesting that there are no conditional independencies among the three skills.
-	This is an interesting insight that previous approaches can not provide.   
+	This is an interesting insight that previous approaches cannot provide.   
 	Further, COMMAND also outputs the conditional probabilities associated with each skill and its direct prerequisite.
 %	which provides insights into how prerequisites impact the post-requisite probabilistically. 
 	We clearly see that the probability of student mastering a skill increases when the student has acquired more prerequisites of the skill.
@@ -1120,13 +1121,13 @@ In all our experiments, we use BIC as the scoring function in Structural EM .
 	%We introduced the Structural EM
 	%We demonstrate our approach using both synthetic and real-world data.
 	
-        We  extend  on prior work in significant ways.
-	We optimize the full structure of skills instead of only estimating the pairwise relationships. 
+    We  extend  on prior work in significant ways.
+	We optimize the full structure of skills that captures the conditional independence between skills, instead of only estimating the pairwise relationships.
 	Our experiments suggests that this results in better accuracy.
 	Moreover, we argue that our strategy is  easier to use %more the quality of the discovered prerequisite structures discovered.
 	%We believe COMMAND is easier to use
         because  it does not require  manual tuning of  parameters.
-	Other methods~\cite{brunskill2010estimating} require  the  \emph{guess} and \emph{slip} probabilities to be  provided as input,
+	Other methods~\cite{brunskill2010estimating} require the  \emph{guess} and \emph{slip} probabilities to be  provided as input,
 	or alternatively~\cite{chen2015discovering},  thresholds to determine the existence of a prerequisite relationship.
 	Determining these values requires experts' intervention. 
 	COMMAND does not require such tuning.
