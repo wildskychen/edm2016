@@ -773,7 +773,7 @@ In all our experiments, we use BIC as the scoring function in Structural EM .
 	We consider two situations where different types of $Q$-matrix are used. In the first situation,
 	each item node maps to exactly one skill node. In the second one, each item maps to 1-3 skills. 
 	Figure~\ref{fig:f1-single-multi} compares the $F_1$ of adjacency discovery and edge orientation results under the two types of $Q$-matrices.
-	With only 500 observations, COMMAND improves on a fully connected Bayesian Network baseline trained with \hl{??} observations.
+	With only 500 observations, COMMAND improves on a fully connected Bayesian Network baseline trained with \hl{$n$ ??} observations.
 	COMMAND's  accuracy  improves with the amount of data, but its accuracy is slightly lower when the $Q$-matrix contains items that require more than one skill. % than single-skill $Q$-matrix.
 	A possible explanation for this is that multi-skill items may introduce more spurious correlations in the data.
 	With just 2000 observations, COMMAND  recovers the true structures almost perfectly.
