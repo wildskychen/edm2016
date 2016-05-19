@@ -258,7 +258,7 @@ Item-to-skill mappings (also called $Q$-matrices) are desirable because they all
 Because of this, follow-up work~\cite{brunskill2010estimating,chen2015discovering}  has studied whether a pair of skills have a prerequisite relationship or not.
 %They do so by comparing data of a pair of skills using  two different models.
 %They do so by comparing two models that represent different relationships between two skills.
-For this,  we can measure if a model that assumes a dependency between the two skills explain the data better than a model that assumes independence. %if there is a prerequisite relationship between a pair of skills or not.
+For this,  we can measure if a model that assumes a dependency between the two skills explains the data better than a model that assumes independence. %if there is a prerequisite relationship between a pair of skills or not.
 This comparison can be done with data likelihood~\cite{brunskill2010estimating} or association rule mining~\cite{chen2015discovering}.
 Although  promising, prior methods have   limitations that we address:
 %\vspace{-5mm}
@@ -267,13 +267,13 @@ Although  promising, prior methods have   limitations that we address:
 For example, suppose we want to discover the prerequisites of three skills for English learning ($S_1$:syntax, $S_2$:cohesion and $S_3$:lexical rules).
 If we use prior methods, we discover that the three skills are related among each other.
 %but we are unable to know if syntax requires directly both cohesion and lexical rules, or if the effect is through an indirect pre
-However, pairwise relations are unable to tell if the relationship is due to indirect effects  (e.g, $S_3 \rightarrow S_2 \rightarrow S_1$), or due to a skill with two prerequisites (e.g, 
+However, pairwise methods  are unable to tell if the relationships are due to indirect effects  (e.g, $S_3 \rightarrow S_2 \rightarrow S_1$), or due to a skill with two prerequisites (e.g, 
 $S_3$\tikz \node(a) {\vphantom{g}};$\rightarrow S_2 \rightarrow$\tikz \node(b) {\vphantom{g}};$S_1$%
  \tikz [overlay] \draw [->]  (a.south) to [bend right=18]  (b.south);).
  
 \item It is unclear how to use the output of these prerequisite structures for student modeling. For example,  it is not obvious how to best use them to make predictions of future student performance.
 \item Prior work does  not provide  quantitative evaluation using real student data. 
-Overall, real student data has been used for examples, but without any quantitative evaluation methodology that can help compare different algorithms.
+Overall, learner data has been used to provide examples, but without any  methodology that can help compare what algorithm works better.
 \end{enumerate}
 %Prior work has evaluated their methods using simulated data, and limited student data for examples.
 %\vspace{-5mm}
